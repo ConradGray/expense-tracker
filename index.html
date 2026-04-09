@@ -392,7 +392,7 @@ async function drillCategory(cat) {
   var { data } = await q;
   document.getElementById('drill-title').textContent = (CAT_ICONS[cat]||'📦')+' '+cat;
   var html = !data||data.length===0 ? '<div class="empty">No transactions</div>' : '<div class="card">';
-  if (data&&data.length>0) { data.forEach(function(e){ var d=new Date(e.date).toLocaleDateString('en-KE',{day:'numeric',month:'short'}); html+='<div class="expense-item"><div class="expense-body"><div class="expense-desc">'+e.description+'</div><div class="expense-meta">'+d+' · '+e.payment+' · <span style="color:'+(e.type==='Business'?'var(--orange)':'var(--blue)')+'">'+e.type+'</span></div></div><div class="expense-amount">'+fmtKES(e.amount)+'</div><button class="delete-btn" onclick="deleteDrillExpense(\''+e.id+\','\''+cat+'\')">🗑️</button></div>'; }); html+='</div>'; }
+  if (data&&data.length>0) { data.forEach(function(e){ var d=new Date(e.date).toLocaleDateString('en-KE',{day:'numeric',month:'short'}); html+='<div class="expense-item"><div class="expense-body"><div class="expense-desc">'+e.description+'</div><div class="expense-meta">'+d+' · '+e.payment+' · <span style="color:'+(e.type==='Business'?'var(--orange)':'var(--blue)')+'">'+e.type+'</span></div></div><div class="expense-amount">'+fmtKES(e.amount)+'</div><button class="delete-btn" onclick="deleteDrillExpense(\''+e.id+'\','\''+cat+'\')">🗑️</button></div>'; }); html+='</div>'; }
   document.getElementById('drill-content').innerHTML = html;
   document.getElementById('drill-overlay').style.display = 'flex';
 }
@@ -455,7 +455,7 @@ async function loadLoans() {
   if (totalOut>0) html+='<div class="card"><div style="text-align:center;padding:8px 0"><div style="font-size:32px;font-weight:800;color:var(--orange)">'+fmtKES(totalOut)+'</div><div style="font-size:13px;color:var(--muted);margin-top:4px">Total outstanding</div></div></div>';
   if (outstanding.length>0) {
     html+='<div class="section-title">Outstanding</div><div class="card">';
-    outstanding.forEach(function(l){ var d=new Date(l.date).toLocaleDateString('en-KE',{day:'numeric',month:'short',year:'numeric'}); html+='<div class="loan-item"><div class="loan-top"><span class="loan-person">'+l.person+'</span><span class="loan-amount">'+fmtKES(l.amount)+'</span></div><div class="loan-meta">'+d+(l.purpose?' · '+l.purpose:'')+'</div>'+(l.notes?'<div class="loan-meta">'+l.notes+'</div>':'')+'<button class="settle-btn" onclick="settleLoan(\''+l.id+\','\''+l.person+'','+l.amount+')">Mark Settled ✓</button></div>'; });
+    outstanding.forEach(function(l){ var d=new Date(l.date).toLocaleDateString('en-KE',{day:'numeric',month:'short',year:'numeric'}); html+='<div class="loan-item"><div class="loan-top"><span class="loan-person">'+l.person+'</span><span class="loan-amount">'+fmtKES(l.amount)+'</span></div><div class="loan-meta">'+d+(l.purpose?' · '+l.purpose:'')+'</div>'+(l.notes?'<div class="loan-meta">'+l.notes+'</div>':'')+'<button class="settle-btn" onclick="settleLoan(\''+l.id+'\','\''+l.person+'\','+l.amount+')">Mark Settled ✓</button></div>'; });
     html+='</div>';
   }
   if (settled.length>0) {
