@@ -76,6 +76,15 @@ textarea { resize: none; height: 72px; font-size: 14px; }
 .expense-desc { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .expense-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
 .expense-amount { font-size: 15px; font-weight: 700; white-space: nowrap; }
+.delete-btn { background: none; border: none; font-size: 16px; cursor: pointer; padding: 4px 8px; opacity: 0.4; flex-shrink: 0; }
+.delete-btn:hover, .delete-btn:active { opacity: 1; }
+.category-card { cursor: pointer; }
+.category-card:active { opacity: 0.8; }
+.drill-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; display: flex; align-items: flex-end; }
+.drill-panel { background: var(--card); border-radius: var(--radius) var(--radius) 0 0; width: 100%; max-height: 80vh; overflow-y: auto; padding: 20px; }
+.drill-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.drill-title { font-size: 17px; font-weight: 700; }
+.drill-close { background: none; border: none; color: var(--muted); font-size: 24px; cursor: pointer; padding: 0 4px; }
 .split-bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; margin: 10px 0 4px; }
 .split-bar-personal { background: var(--blue); }
 .split-bar-business { background: var(--orange); }
@@ -170,6 +179,16 @@ textarea { resize: none; height: 72px; font-size: 14px; }
     <span class="icon">🕐</span>Recent
   </button>
 </nav>
+
+<div class="drill-overlay" id="drill-overlay" style="display:none" onclick="closeDrill(event)">
+  <div class="drill-panel" id="drill-panel">
+    <div class="drill-header">
+      <span class="drill-title" id="drill-title"></span>
+      <button class="drill-close" onclick="closeDrill()">&#x2715;</button>
+    </div>
+    <div id="drill-content"></div>
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 
@@ -293,7 +312,7 @@ function renderMonthSummary(expenses, budgets) {
     html += '<div class="section-title">By Category</div>';
     sortedCats.forEach(cat => {
       var amt = categories[cat], budget = budgets[cat], icon = CAT_ICONS[cat]||'📦';
-      html += '<div class="card"><div class="stat-row"><span class="stat-label">'+icon+' '+cat+'</span><span class="stat-value">'+fmtKES(amt)+'</span></div>';
+      html += '<div class="card category-card" onclick="drillCategory(\''+cat+'\')">' + '<div class="stat-row"><span class="stat-label">'+icon+' '+cat+'</span><span class="stat-value">'+fmtKES(amt)+' ›</span></div>';
       if (budget) {
         var pct = Math.min(100,Math.round((amt/budget)*100)), over = amt>budget;
         html += '<div class="budget-bar-wrap"><div class="budget-bar-bg"><div class="budget-bar-fill'+(over?' over':'')+'" style="width:'+pct+'%"></div></div><div class="budget-meta"><span>'+pct+'% of budget</span><span>'+fmtKES(budget)+'</span></div></div>';
@@ -313,10 +332,65 @@ async function loadRecent() {
   data.forEach(e => {
     var icon = CAT_ICONS[e.category]||'📦', typeClass = e.type==='Business'?'business':'personal';
     var dateStr = new Date(e.date).toLocaleDateString('en-KE',{day:'numeric',month:'short'});
-    html += '<div class="expense-item"><div class="expense-icon '+typeClass+'">'+icon+'</div><div class="expense-body"><div class="expense-desc">'+e.description+'</div><div class="expense-meta">'+e.category+' · '+dateStr+' · '+e.payment+'</div></div><div class="expense-amount">'+fmtKES(e.amount)+'</div></div>';
+    html += '<div class="expense-item"><div class="expense-icon '+typeClass+'">'+icon+'</div><div class="expense-body"><div class="expense-desc">'+e.description+'</div><div class="expense-meta">'+e.category+' · '+dateStr+' · '+e.payment+'</div></div><div class="expense-amount">'+fmtKES(e.amount)+'</div><button class="delete-btn" onclick="deleteExpense(\''+e.id+'\')" title="Delete">🗑️</button></div>';
   });
   html += '</div>';
   document.getElementById('recent-content').innerHTML = html;
+}
+
+var drillData = [];
+
+async function drillCategory(cat) {
+  var start = currentYear + '-' + String(currentMonth).padStart(2,'0') + '-01';
+  var end = new Date(currentYear, currentMonth, 0);
+  var endStr = currentYear + '-' + String(currentMonth).padStart(2,'0') + '-' + String(end.getDate()).padStart(2,'0');
+  const { data } = await db.from('expenses').select('*')
+    .eq('category', cat).gte('date', start).lte('date', endStr)
+    .order('date', {ascending: false});
+  drillData = data || [];
+  var icon = CAT_ICONS[cat] || '📦';
+  document.getElementById('drill-title').textContent = icon + ' ' + cat;
+  var html = '';
+  if (drillData.length === 0) {
+    html = '<div class="empty">No transactions</div>';
+  } else {
+    html = '<div class="card">';
+    drillData.forEach(function(e) {
+      var dateStr = new Date(e.date).toLocaleDateString('en-KE', {day:'numeric', month:'short'});
+      html += '<div class="expense-item">';
+      html += '<div class="expense-body"><div class="expense-desc">' + e.description + '</div>';
+      html += '<div class="expense-meta">' + dateStr + ' · ' + e.payment + ' · <span style="color:' + (e.type==='Business'?'var(--orange)':'var(--blue)') + '">' + e.type + '</span></div></div>';
+      html += '<div class="expense-amount">' + fmtKES(e.amount) + '</div>';
+      html += '<button class="delete-btn" onclick="deleteDrillExpense(\''+e.id+'\', \''+cat+'\')" title="Delete">🗑️</button>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+  document.getElementById('drill-content').innerHTML = html;
+  document.getElementById('drill-overlay').style.display = 'flex';
+}
+
+function closeDrill(event) {
+  if (!event || event.target === document.getElementById('drill-overlay')) {
+    document.getElementById('drill-overlay').style.display = 'none';
+    loadMonthSummary();
+  }
+}
+
+async function deleteDrillExpense(id, cat) {
+  if (!confirm('Delete this expense?')) return;
+  const { error } = await db.from('expenses').delete().eq('id', id);
+  if (error) { showToast('Error deleting'); return; }
+  showToast('Deleted');
+  drillCategory(cat);
+}
+
+async function deleteExpense(id) {
+  if (!confirm('Delete this expense?')) return;
+  const { error } = await db.from('expenses').delete().eq('id', id);
+  if (error) { showToast('Error deleting'); return; }
+  showToast('Deleted');
+  loadRecent();
 }
 
 init();
