@@ -116,30 +116,30 @@ textarea { resize: none; height: 72px; font-size: 14px; }
 </head>
 <body>
 <div class="header">
-  <h1>ð³ Finance</h1>
+  <h1>💳 Finance</h1>
   <p id="header-date"></p>
 </div>
 
 <div id="tab-add" class="tab-content active">
   <div class="add-type-toggle">
-    <button class="add-type-btn active" id="add-type-expense" onclick="switchAddType('expense')">ð¸ Expense</button>
-    <button class="add-type-btn" id="add-type-income" onclick="switchAddType('income')">ð° Income</button>
-    <button class="add-type-btn" id="add-type-loan" onclick="switchAddType('loan')">ð¤ Loan</button>
+    <button class="add-type-btn active" id="add-type-expense" onclick="switchAddType('expense')">💸 Expense</button>
+    <button class="add-type-btn" id="add-type-income" onclick="switchAddType('income')">💰 Income</button>
+    <button class="add-type-btn" id="add-type-loan" onclick="switchAddType('loan')">🤝 Loan</button>
   </div>
   <div id="form-expense">
     <div class="form-group"><label>Amount</label><div class="amount-prefix"><input type="number" id="f-amount" placeholder="0" min="0" step="1"/></div></div>
     <div class="form-group"><label>Description</label><input type="text" id="f-desc" placeholder="What was it for?" /></div>
     <div class="form-group"><label>Category</label>
       <select id="f-category">
-        <option value="Groceries">ð Groceries</option>
-        <option value="Food Delivery">ðµ Food Delivery</option>
-        <option value="Utilities">ð¡ Utilities</option>
-        <option value="Transport">ð Transport</option>
-        <option value="Personal Care">ð Personal Care</option>
-        <option value="Entertainment">ð Entertainment</option>
-        <option value="Salaries">ð¼ Salaries</option>
-        <option value="Loans">ð¤ Loans</option>
-        <option value="Other">ð¦ Other</option>
+        <option value="Groceries">🛒 Groceries</option>
+        <option value="Food Delivery">🛵 Food Delivery</option>
+        <option value="Utilities">💡 Utilities</option>
+        <option value="Transport">🚗 Transport</option>
+        <option value="Personal Care">💆 Personal Care</option>
+        <option value="Entertainment">🎉 Entertainment</option>
+        <option value="Salaries">💼 Salaries</option>
+        <option value="Loans">🤝 Loans</option>
+        <option value="Other">📦 Other</option>
       </select>
     </div>
     <div class="form-group"><label>Type</label>
@@ -162,6 +162,13 @@ textarea { resize: none; height: 72px; font-size: 14px; }
   <div id="form-income" style="display:none">
     <div class="form-group"><label>Amount</label><div class="amount-prefix"><input type="number" id="i-amount" placeholder="0" min="0" step="1"/></div></div>
     <div class="form-group"><label>Source</label><input type="text" id="i-source" placeholder="e.g. DJ Gig, Studio Booking, Salary..." /></div>
+    
+    <div class="form-group"><label>Type</label>
+      <div class="toggle-group" id="income-type-group">
+        <button class="toggle-btn active-personal" data-val="Personal" onclick="selectIncomeType('Personal')">Personal</button>
+        <button class="toggle-btn" data-val="Business" onclick="selectIncomeType('Business')">Business</button>
+      </div>
+    </div>
     <div class="form-group"><label>Date</label><input type="date" id="i-date" /></div>
     <div class="form-group"><label>Notes (optional)</label><textarea id="i-notes" placeholder="Any extra details..."></textarea></div>
     <button class="btn-primary income-btn" id="submit-income-btn" onclick="submitIncome()">Log Income</button>
@@ -223,11 +230,11 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-var selectedType = 'Personal', selectedPayment = 'Mpesa';
+var selectedType = 'Personal', selectedPayment = 'Mpesa', selectedIncomeType = 'Personal';
 var currentMonth, currentYear, currentTypeFilter = 'all';
 
 var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-var CAT_ICONS = {'Groceries':'ð','Food Delivery':'ðµ','Utilities':'ð¡','Transport':'ð','Personal Care':'ð','Entertainment':'ð','Salaries':'ð¼','Loans':'ð¤','Other':'ð¦'};
+var CAT_ICONS = {'Groceries':'🛒','Food Delivery':'🛵','Utilities':'💡','Transport':'🚗','Personal Care':'💆','Entertainment':'🎉','Salaries':'💼','Loans':'🤝','Other':'📦'};
 
 function init() {
   var now = new Date();
@@ -255,7 +262,14 @@ function switchTab(tab) {
   if (tab === 'loans') loadLoans();
 }
 
-function selectType(val) {
+function selectIncomeType(val) {
+    selectedIncomeType = val;
+    document.querySelectorAll('#income-type-group .toggle-btn').forEach(function(btn){
+      btn.classList.remove('active-personal','active-business');
+      if (btn.dataset.val === val) btn.classList.add(val === 'Personal' ? 'active-personal' : 'active-business');
+    });
+  }
+  function selectType(val) {
   selectedType = val;
   document.querySelectorAll('#type-group .toggle-btn').forEach(function(btn){
     btn.classList.remove('active-personal','active-business');
@@ -307,11 +321,16 @@ async function submitIncome() {
   if (!amount || parseFloat(amount) <= 0) { showToast('Enter an amount','var(--red)'); return; }
   if (!source) { showToast('Add a source','var(--red)'); return; }
   var btn = document.getElementById('submit-income-btn'); btn.disabled = true; btn.textContent = 'Saving...';
-  var { error } = await db.from('income').insert({ date, amount: parseFloat(amount), source, notes });
+  var { error } = await db.from('income').insert({ date, amount: parseFloat(amount), source, notes, type: selectedIncomeType });
   btn.disabled = false; btn.textContent = 'Log Income';
   if (error) { showToast('Error: ' + error.message,'var(--red)'); return; }
   showToast('Income logged');
   ['i-amount','i-source','i-notes'].forEach(function(id){ document.getElementById(id).value = ''; });
+    selectedIncomeType = 'Personal';
+    document.querySelectorAll('#income-type-group .toggle-btn').forEach(function(btn){
+      btn.classList.remove('active-personal','active-business');
+      if (btn.dataset.val === 'Personal') btn.classList.add('active-personal');
+    });
 }
 
 async function submitLoan() {
@@ -353,7 +372,7 @@ async function loadMonthSummary() {
   var html = '<div class="net-row">';
   html += '<div class="net-card"><div class="nc-amount nc-in">'+fmtKES(totalInc)+'</div><div class="nc-label">Income</div></div>';
   html += '<div class="net-card"><div class="nc-amount nc-out">'+fmtKES(totalExp)+'</div><div class="nc-label">Expenses</div></div>';
-  html += '<div class="net-card"><div class="nc-amount '+(net>=0?'nc-net-pos':'nc-net-neg')+'">'+fmtKES(Math.abs(net))+'</div><div class="nc-label">'+(net>=0?'â² Net':'â¼ Net')+'</div></div>';
+  html += '<div class="net-card"><div class="nc-amount '+(net>=0?'nc-net-pos':'nc-net-neg')+'">'+fmtKES(Math.abs(net))+'</div><div class="nc-label">'+(net>=0?'▲ Net':'▼ Net')+'</div></div>';
   html += '</div>';
   if (currentTypeFilter === 'all' && totalExp > 0) {
     var pPct = Math.round((byType.Personal/totalExp)*100);
@@ -368,15 +387,15 @@ async function loadMonthSummary() {
   if (sortedCats.length > 0) {
     html += '<div class="section-title">By Category</div>';
     sortedCats.forEach(function(cat){
-      var amt=categories[cat], budget=budgets[cat], icon=CAT_ICONS[cat]||'ð¦';
-      html += '<div class="card category-card" onclick="drillCategory(\''+cat+'\')"><div class="stat-row"><span class="stat-label">'+icon+' '+cat+'</span><span class="stat-value">'+fmtKES(amt)+' âº</span></div>';
+      var amt=categories[cat], budget=budgets[cat], icon=CAT_ICONS[cat]||'📦';
+      html += '<div class="card category-card" onclick="drillCategory(\''+cat+'\')"><div class="stat-row"><span class="stat-label">'+icon+' '+cat+'</span><span class="stat-value">'+fmtKES(amt)+' ›</span></div>';
       if (budget) { var pct=Math.min(100,Math.round((amt/budget)*100)),over=amt>budget; html+='<div class="budget-bar-wrap"><div class="budget-bar-bg"><div class="budget-bar-fill'+(over?' over':'')+'" style="width:'+pct+'%"></div></div><div class="budget-meta"><span>'+pct+'% of budget</span><span>'+fmtKES(budget)+'</span></div></div>'; }
       html += '</div>';
     });
   } else { html += '<div class="empty">No expenses this month</div>'; }
   if ((incomeData||[]).length > 0) {
     html += '<div class="section-title">Income This Month</div><div class="card">';
-    incomeData.forEach(function(i){ var d=new Date(i.date).toLocaleDateString('en-KE',{day:'numeric',month:'short'}); html+='<div class="stat-row"><span class="stat-label">'+i.source+' <span style="font-size:11px;color:var(--muted)">Â· '+d+'</span></span><span class="stat-value" style="color:var(--blue)">'+fmtKES(i.amount)+'</span></div>'; });
+    incomeData.forEach(function(i){ var d=new Date(i.date).toLocaleDateString('en-KE',{day:'numeric',month:'short'}); html+='<div class="stat-row"><span class="stat-label">'+i.source+' <span style="font-size:11px;color:var(--muted)">· '+d+'</span></span><span class="stat-value" style="color:var(--blue)">'+fmtKES(i.amount)+'</span></div>'; });
     html += '</div>';
   }
   document.getElementById('month-content').innerHTML = html;
@@ -390,9 +409,9 @@ async function drillCategory(cat) {
   if (currentTypeFilter==='personal') q=q.eq('type','Personal');
   if (currentTypeFilter==='business') q=q.eq('type','Business');
   var { data } = await q;
-  document.getElementById('drill-title').textContent = (CAT_ICONS[cat]||'ð¦')+' '+cat;
+  document.getElementById('drill-title').textContent = (CAT_ICONS[cat]||'📦')+' '+cat;
   var html = !data||data.length===0 ? '<div class="empty">No transactions</div>' : '<div class="card">';
-  if (data&&data.length>0) { data.forEach(function(e){ var d=new Date(e.date).toLocaleDateString('en-KE',{day:'numeric',month:'short'}); html+='<div class="expense-item"><div class="expense-body"><div class="expense-desc">'+e.description+'</div><div class="expense-meta">'+d+' Â· '+e.payment+' Â· <span style="color:'+(e.type==='Business'?'var(--orange)':'var(--blue)')+'">'+e.type+'</span></div></div><div class="expense-amount">'+fmtKES(e.amount)+'</div><button class="delete-btn" onclick="deleteDrillExpense(\''+e.id+'\',\''+cat+'\')">ðï¸</button></div>'; }); html+='</div>'; }
+  if (data&&data.length>0) { data.forEach(function(e){ var d=new Date(e.date).toLocaleDateString('en-KE',{day:'numeric',month:'short'}); html+='<div class="expense-item"><div class="expense-body"><div class="expense-desc">'+e.description+'</div><div class="expense-meta">'+d+' · '+e.payment+' · <span style="color:'+(e.type==='Business'?'var(--orange)':'var(--blue)')+'">'+e.type+'</span></div></div><div class="expense-amount">'+fmtKES(e.amount)+'</div><button class="delete-btn" onclick="deleteDrillExpense(\''+e.id+'\',\''+cat+'\')">🗑️</button></div>'; }); html+='</div>'; }
   document.getElementById('drill-content').innerHTML = html;
   document.getElementById('drill-overlay').style.display = 'flex';
 }
@@ -422,10 +441,10 @@ async function loadRecent() {
   combined.forEach(function(e){
     var d=new Date(e.date).toLocaleDateString('en-KE',{day:'numeric',month:'short'});
     if (e._type==='income') {
-      html+='<div class="expense-item"><div class="expense-icon income-icon">ð°</div><div class="expense-body"><div class="expense-desc">'+e.source+'</div><div class="expense-meta">Income Â· '+d+'</div></div><div class="expense-amount income-amt">+'+fmtKES(e.amount)+'</div><button class="delete-btn" onclick="deleteIncome(\''+e.id+'\')">ðï¸</button></div>';
+      html+='<div class="expense-item"><div class="expense-icon income-icon">💰</div><div class="expense-body"><div class="expense-desc">'+e.source+'</div><div class="expense-meta">Income · '+d+'</div></div><div class="expense-amount income-amt">+'+fmtKES(e.amount)+'</div><button class="delete-btn" onclick="deleteIncome(\''+e.id+'\')">🗑️</button></div>';
     } else {
-      var icon=CAT_ICONS[e.category]||'ð¦', tc=e.type==='Business'?'business':'personal';
-      html+='<div class="expense-item"><div class="expense-icon '+tc+'">'+icon+'</div><div class="expense-body"><div class="expense-desc">'+e.description+'</div><div class="expense-meta">'+e.category+' Â· '+d+' Â· '+e.payment+'</div></div><div class="expense-amount">'+fmtKES(e.amount)+'</div><button class="delete-btn" onclick="deleteExpense(\''+e.id+'\')">ðï¸</button></div>';
+      var icon=CAT_ICONS[e.category]||'📦', tc=e.type==='Business'?'business':'personal';
+      html+='<div class="expense-item"><div class="expense-icon '+tc+'">'+icon+'</div><div class="expense-body"><div class="expense-desc">'+e.description+'</div><div class="expense-meta">'+e.category+' · '+d+' · '+e.payment+'</div></div><div class="expense-amount">'+fmtKES(e.amount)+'</div><button class="delete-btn" onclick="deleteExpense(\''+e.id+'\')">🗑️</button></div>';
     }
   });
   html += '</div>';
@@ -455,12 +474,12 @@ async function loadLoans() {
   if (totalOut>0) html+='<div class="card"><div style="text-align:center;padding:8px 0"><div style="font-size:32px;font-weight:800;color:var(--orange)">'+fmtKES(totalOut)+'</div><div style="font-size:13px;color:var(--muted);margin-top:4px">Total outstanding</div></div></div>';
   if (outstanding.length>0) {
     html+='<div class="section-title">Outstanding</div><div class="card">';
-    outstanding.forEach(function(l){ var d=new Date(l.date).toLocaleDateString('en-KE',{day:'numeric',month:'short',year:'numeric'}); html+='<div class="loan-item"><div class="loan-top"><span class="loan-person">'+l.person+'</span><span class="loan-amount">'+fmtKES(l.amount)+'</span></div><div class="loan-meta">'+d+(l.purpose?' Â· '+l.purpose:'')+'</div>'+(l.notes?'<div class="loan-meta">'+l.notes+'</div>':'')+'<button class="settle-btn" onclick="settleLoan(\''+l.id+'\',\''+l.person+'\','+l.amount+')">Mark Settled â</button></div>'; });
+    outstanding.forEach(function(l){ var d=new Date(l.date).toLocaleDateString('en-KE',{day:'numeric',month:'short',year:'numeric'}); html+='<div class="loan-item"><div class="loan-top"><span class="loan-person">'+l.person+'</span><span class="loan-amount">'+fmtKES(l.amount)+'</span></div><div class="loan-meta">'+d+(l.purpose?' · '+l.purpose:'')+'</div>'+(l.notes?'<div class="loan-meta">'+l.notes+'</div>':'')+'<button class="settle-btn" onclick="settleLoan(\''+l.id+'\',\''+l.person+'\','+l.amount+')">Mark Settled ✓</button></div>'; });
     html+='</div>';
   }
   if (settled.length>0) {
     html+='<div class="section-title">Settled</div><div class="card">';
-    settled.forEach(function(l){ var d=new Date(l.date).toLocaleDateString('en-KE',{day:'numeric',month:'short',year:'numeric'}); var sd=l.settled_date?new Date(l.settled_date).toLocaleDateString('en-KE',{day:'numeric',month:'short',year:'numeric'}):''; html+='<div class="loan-item"><div class="loan-top"><span class="loan-person" style="color:var(--muted)">'+l.person+'</span><span class="loan-amount settled-amt">'+fmtKES(l.amount)+'</span></div><div class="loan-meta">Lent '+d+(sd?' Â· Settled '+sd:'')+(l.purpose?' Â· '+l.purpose:'')+'</div></div>'; });
+    settled.forEach(function(l){ var d=new Date(l.date).toLocaleDateString('en-KE',{day:'numeric',month:'short',year:'numeric'}); var sd=l.settled_date?new Date(l.settled_date).toLocaleDateString('en-KE',{day:'numeric',month:'short',year:'numeric'}):''; html+='<div class="loan-item"><div class="loan-top"><span class="loan-person" style="color:var(--muted)">'+l.person+'</span><span class="loan-amount settled-amt">'+fmtKES(l.amount)+'</span></div><div class="loan-meta">Lent '+d+(sd?' · Settled '+sd:'')+(l.purpose?' · '+l.purpose:'')+'</div></div>'; });
     html+='</div>';
   }
   document.getElementById('loans-content').innerHTML = html;
