@@ -315,8 +315,7 @@ async function submitExpense() {
   ['f-amount','f-desc','f-notes'].forEach(function(id){ document.getElementById(id).value = ''; });
 }
 
-let selectedIncomeType = 'Personal';
-        async function submitIncome() {
+async function submitIncome() {
   var amount = document.getElementById('i-amount').value, source = document.getElementById('i-source').value.trim();
   var date = document.getElementById('i-date').value, notes = document.getElementById('i-notes').value.trim();
   if (!amount || parseFloat(amount) <= 0) { showToast('Enter an amount','var(--red)'); return; }
