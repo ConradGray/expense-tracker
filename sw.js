@@ -1,4 +1,4 @@
-const CACHE_NAME = 'expenses-v2';
+const CACHE_NAME = 'expenses-v3';
 const urlsToCache = ['/'];
 self.addEventListener('install', event => {
     self.skipWaiting();
