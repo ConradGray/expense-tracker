@@ -126,6 +126,25 @@ textarea { resize: none; height: 72px; font-size: 14px; }
 .budget-actions-row { display:flex; gap:10px; margin-top:14px; }
 .budget-save-btn { flex:1; background:var(--green); border:none; color:#000; font-weight:700; padding:11px; border-radius:8px; cursor:pointer; font-size:14px; }
 .budget-cancel-btn { flex:0 0 auto; background:none; border:1px solid var(--border); color:var(--muted); padding:11px 16px; border-radius:8px; cursor:pointer; font-size:14px; }
+
+#pin-screen { position:fixed; inset:0; background:var(--bg); z-index:500; display:flex; align-items:center; justify-content:center; flex-direction:column; }
+#pin-screen.hidden { display:none; }
+.pin-content { display:flex; flex-direction:column; align-items:center; width:100%; max-width:320px; padding:0 24px; }
+.pin-logo { font-size:40px; margin-bottom:16px; }
+.pin-app-name { font-size:22px; font-weight:700; color:var(--white); margin-bottom:6px; }
+#pin-title { font-size:14px; color:var(--muted); margin-bottom:28px; text-align:center; min-height:20px; }
+.pin-dots { display:flex; gap:16px; margin-bottom:36px; }
+.pin-dot { width:14px; height:14px; border-radius:50%; border:2px solid var(--muted); transition:background 0.15s,border-color 0.15s; }
+.pin-dot.filled { background:var(--green); border-color:var(--green); }
+.pin-dot.error { background:var(--red); border-color:var(--red); }
+.pin-dots.shake { animation:pin-shake 0.4s ease; }
+@keyframes pin-shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(6px)} }
+.pin-pad { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; width:100%; }
+.pin-key { background:var(--card); border:1px solid var(--border); border-radius:50%; width:68px; height:68px; font-size:22px; font-weight:600; color:var(--white); cursor:pointer; display:flex; align-items:center; justify-content:center; margin:0 auto; user-select:none; -webkit-tap-highlight-color:transparent; }
+.pin-key:active { background:var(--border); }
+.pin-key.del { font-size:18px; background:none; border-color:transparent; color:var(--muted); }
+.pin-key.empty { background:none; border-color:transparent; pointer-events:none; }
+.pin-reset { margin-top:24px; font-size:12px; color:var(--muted); background:none; border:none; cursor:pointer; text-decoration:underline; }
 </style>
 </head>
 <body>
@@ -569,6 +588,80 @@ async function exportCSV(){
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   URL.revokeObjectURL(url); showToast('CSV exported');
 }
+
+(function initPin(){
+  var stored = localStorage.getItem('financePin');
+  window._pinMode = stored ? 'enter' : 'create';
+  window._pinEntry = '';
+  window._pinFirst = '';
+  document.getElementById('pin-title').textContent = stored ? 'Enter your PIN' : 'Create a 4-digit PIN';
+  if (stored) document.getElementById('pin-reset-btn').style.display = '';
+})();
+
+function pinPress(d){
+  if(window._pinEntry.length >= 4) return;
+  window._pinEntry += d;
+  _pinUpdateDots();
+  if(window._pinEntry.length === 4) setTimeout(_pinProcess, 120);
+}
+function pinDel(){
+  window._pinEntry = window._pinEntry.slice(0,-1);
+  _pinUpdateDots();
+}
+function _pinUpdateDots(){
+  for(var i=0;i<4;i++){
+    var el = document.getElementById('pd'+i);
+    el.classList.toggle('filled', i < window._pinEntry.length);
+    el.classList.remove('error');
+  }
+}
+function _pinProcess(){
+  if(window._pinMode === 'create'){
+    if(!window._pinFirst){
+      window._pinFirst = window._pinEntry;
+      window._pinEntry = '';
+      document.getElementById('pin-title').textContent = 'Confirm your PIN';
+      _pinUpdateDots();
+    } else {
+      if(window._pinEntry === window._pinFirst){
+        localStorage.setItem('financePin', window._pinEntry);
+        _pinUnlock();
+        showToast('PIN set');
+      } else {
+        window._pinFirst = ''; window._pinEntry = '';
+        document.getElementById('pin-title').textContent = 'PINs did not match — try again';
+        _pinShake(true);
+      }
+    }
+  } else {
+    var stored = localStorage.getItem('financePin');
+    if(window._pinEntry === stored){
+      _pinUnlock();
+    } else {
+      window._pinEntry = '';
+      document.getElementById('pin-title').textContent = 'Incorrect PIN — try again';
+      _pinShake(true);
+    }
+  }
+}
+function _pinUnlock(){
+  document.getElementById('pin-screen').classList.add('hidden');
+}
+function _pinShake(showError){
+  var dots = document.getElementById('pin-dots');
+  if(showError) for(var i=0;i<4;i++) document.getElementById('pd'+i).classList.add('error');
+  dots.classList.add('shake');
+  setTimeout(function(){ dots.classList.remove('shake'); _pinUpdateDots(); }, 500);
+}
+function pinReset(){
+  if(confirm('This will clear your PIN and you will need to set a new one. Continue?')){
+    localStorage.removeItem('financePin');
+    window._pinMode = 'create'; window._pinEntry = ''; window._pinFirst = '';
+    document.getElementById('pin-title').textContent = 'Create a 4-digit PIN';
+    document.getElementById('pin-reset-btn').style.display = 'none';
+    _pinUpdateDots();
+  }
+}
 </script>
 
 <div class="budget-overlay" id="budget-overlay" onclick="if(event.target===this)closeBudgetModal()">
@@ -579,6 +672,35 @@ async function exportCSV(){
       <button class="budget-cancel-btn" onclick="closeBudgetModal()">Cancel</button>
       <button class="budget-save-btn" onclick="saveBudgetTargets()">Save Budgets</button>
     </div>
+  </div>
+</div>
+
+<div id="pin-screen">
+  <div class="pin-content">
+    <div class="pin-logo">&#x1F4B3;</div>
+    <div class="pin-app-name">Finance</div>
+    <div id="pin-title">Enter your PIN</div>
+    <div class="pin-dots" id="pin-dots">
+      <div class="pin-dot" id="pd0"></div>
+      <div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div>
+      <div class="pin-dot" id="pd3"></div>
+    </div>
+    <div class="pin-pad">
+      <button class="pin-key" onclick="pinPress('1')">1</button>
+      <button class="pin-key" onclick="pinPress('2')">2</button>
+      <button class="pin-key" onclick="pinPress('3')">3</button>
+      <button class="pin-key" onclick="pinPress('4')">4</button>
+      <button class="pin-key" onclick="pinPress('5')">5</button>
+      <button class="pin-key" onclick="pinPress('6')">6</button>
+      <button class="pin-key" onclick="pinPress('7')">7</button>
+      <button class="pin-key" onclick="pinPress('8')">8</button>
+      <button class="pin-key" onclick="pinPress('9')">9</button>
+      <button class="pin-key empty"></button>
+      <button class="pin-key" onclick="pinPress('0')">0</button>
+      <button class="pin-key del" onclick="pinDel()">&#x232B;</button>
+    </div>
+    <button class="pin-reset" id="pin-reset-btn" onclick="pinReset()" style="display:none">Forgot PIN? Reset</button>
   </div>
 </div>
 </body>
