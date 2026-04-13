@@ -395,7 +395,7 @@ async function loadMonthSummary() {
   } else { html += '<div class="empty">No expenses this month</div>'; }
   if ((incomeData||[]).length > 0) {
     html += '<div class="section-title">Income This Month</div><div class="card">';
-    incomeData.forEach(function(i){ var d=new Date(i.date).toLocaleDateString('en-KE',{day:'numeric',month:'short'}); html+='<div class="stat-row"><span class="stat-label">'+i.source+' <span style="font-size:11px;color:var(--muted)">&#xB7; '+d+'</span></span><span class="stat-value" style="color:var(--blue)">'+fmtKES(i.amount)+'</span></div>'; });
+    incomeData.forEach(function(i){ var d=new Date(i.date).toLocaleDateString('en-KE',{day:'numeric',month:'short'}); html+='<div class="stat-row"><span class="stat-label">'+i.source+' <span style="font-size:11px;color:var(--muted)">&#xB7; '+d+'</span></span><span class="stat-value" style="color:var(--blue)">'+fmtKES(i.amount)+'</span><button class="delete-btn" style="margin-left:8px" onclick="deleteIncome(\''+i.id+'\')">&#x1F5D1;</button></div>'; });
     html += '</div>';
   }
   document.getElementById('month-content').innerHTML = html;
@@ -460,7 +460,7 @@ async function deleteExpense(id) {
 async function deleteIncome(id) {
   if (!confirm('Delete?')) return;
   await db.from('income').delete().eq('id',id);
-  showToast('Deleted'); loadRecent();
+  showToast('Deleted'); loadRecent(); loadMonthSummary();
 }
 
 async function loadLoans() {
