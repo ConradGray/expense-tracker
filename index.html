@@ -81,7 +81,7 @@ textarea{resize:none;height:72px;font-size:14px;}
 .expense-amount.income-amt{color:var(--blue);}
 .delete-btn{background:none;border:none;font-size:16px;cursor:pointer;padding:4px 6px;opacity:0.4;flex-shrink:0;}
 .delete-btn:active{opacity:1;}
-.edit-btn{background:none;border:none;font-size:15px;cursor:pointer;padding:4px 6px;opacity:0.4;flex-shrink:0;}
+.edit-btn{font-size:15px;cursor:pointer;padding:4px 6px;opacity:0.4;flex-shrink:0;background:none;border:none;}
 .edit-btn:active{opacity:1;}
 .split-bar{display:flex;height:8px;border-radius:4px;overflow:hidden;margin:10px 0 4px;}
 .split-bar-personal{background:var(--blue);}
@@ -795,7 +795,7 @@ async function exportCSV(){
   var blob=new Blob([csv],{type:'text/csv'});
   var url=URL.createObjectURL(blob);
   var a=document.createElement('a');
-  a.href=url; a.download='finance-'+y+`-'+String(m).padStart(2,'0')+'.csv';
+  a.href=url; a.download='finance-'+y+'-'+String(m).padStart(2,'0')+'.csv';
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   URL.revokeObjectURL(url);
   showToast('CSV exported');
@@ -816,10 +816,10 @@ function _pinUpdateDots(){ for(var i=0;i<4;i++){ var el=document.getElementById(
 function _pinProcess(){
   if(window._pinMode === 'create'){
     if(!window._pinFirst){ window._pinFirst = window._pinEntry; window._pinEntry = ''; document.getElementById('pin-title').textContent = 'Confirm your PIN'; _pinUpdateDots(); }
-    else { if(window._pinEntry === window._pinFirst){ localStorage.setItem('financePin', window._pinEntry); _pinUnlock(); showToast('PIN set'); } else { window._pinFirst = ''; window._pinEntry = ''; document.getElementById('pin-title').textContent = 'PINs did not match â try again'; _pinShake(true); } }
+    else { if(window._pinEntry === window._pinFirst){ localStorage.setItem('financePin', window._pinEntry); _pinUnlock(); showToast('PIN set'); } else { window._pinFirst = ''; window._pinEntry = ''; document.getElementById('pin-title').textContent = 'PINs did not match - try again'; _pinShake(true); } }
   } else {
     var stored = localStorage.getItem('financePin');
-    if(window._pinEntry === stored){ _pinUnlock(); } else { window._pinEntry = ''; document.getElementById('pin-title').textContent = 'Incorrect PIN â try again'; _pinShake(true); }
+    if(window._pinEntry === stored){ _pinUnlock(); } else { window._pinEntry = ''; document.getElementById('pin-title').textContent = 'Incorrect PIN - try again'; _pinShake(true); }
   }
 }
 function _pinUnlock(){ document.getElementById('pin-screen').classList.add('hidden'); }
