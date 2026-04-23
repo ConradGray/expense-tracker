@@ -782,27 +782,35 @@ async function loadLoans() {
 // ── DEBTS ────────────────────────────────────────────────────────────────────
 var GBP_KES_RATE = 165; // update manually when rate changes
 
+var DEBT_VERSION = 2; // bump this when defaults change to force-reset stored data
 function getDebtCards() {
-  try { return JSON.parse(localStorage.getItem('debtCards') || 'null'); } catch(e) { return null; }
+  try {
+    var stored = JSON.parse(localStorage.getItem('debtCards') || 'null');
+    var version = parseInt(localStorage.getItem('debtCardsVersion') || '0');
+    if (!stored || version < DEBT_VERSION) return null; // will fall back to defaults
+    return stored;
+  } catch(e) { return null; }
 }
 
 function saveDebtCards(cards) {
   localStorage.setItem('debtCards', JSON.stringify(cards));
+  localStorage.setItem('debtCardsVersion', String(DEBT_VERSION));
 }
 
 function getDefaultCards() {
   return [
     { id: 1, name: 'Kenya Card 1', balance: 98000, currency: 'KES', apr: 24 },
     { id: 2, name: 'Kenya Card 2', balance: 130000, currency: 'KES', apr: 24 },
-    { id: 3, name: 'UK Card 1', balance: 0, currency: 'GBP', apr: 22 },
-    { id: 4, name: 'UK Card 2', balance: 0, currency: 'GBP', apr: 22 },
-    { id: 5, name: 'UK Card 3', balance: 0, currency: 'GBP', apr: 22 },
-    { id: 6, name: 'UK Card 4', balance: 0, currency: 'GBP', apr: 22 },
+    { id: 3, name: 'Halifax Clarity ···3111', balance: 1497.27, currency: 'GBP', apr: 29.89 },
+    { id: 4, name: 'Halifax Clarity ···8144', balance: 1491.18, currency: 'GBP', apr: 26.32 },
+    { id: 5, name: 'Barclaycard ···6229', balance: 8793.17, currency: 'GBP', apr: 25.15 },
+    { id: 6, name: 'Lloyds ···4783 ⭐ 0% promo', balance: 2748.15, currency: 'GBP', apr: 0 },
   ];
 }
 
 function loadDebts() {
-  var cards = getDebtCards() || getDefaultCards();
+  var cards = getDebtCards();
+  if (!cards) { cards = getDefaultCards(); saveDebtCards(cards); }
   var totalKES = 0, totalGBP = 0;
   cards.forEach(function(c) {
     if (c.currency === 'KES') totalKES += (c.balance || 0);
