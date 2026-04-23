@@ -124,6 +124,16 @@ textarea{resize:none;height:72px;font-size:14px;}
 .budget-actions-row{display:flex;gap:10px;margin-top:14px;}
 .budget-save-btn{flex:1;background:var(--green);border:none;color:#000;font-weight:700;padding:11px;border-radius:8px;cursor:pointer;font-size:14px;}
 .budget-cancel-btn{flex:0 0 auto;background:none;border:1px solid var(--border);color:var(--muted);padding:11px 16px;border-radius:8px;cursor:pointer;font-size:14px;}
+#login-screen{position:fixed;inset:0;background:var(--bg);z-index:600;display:flex;align-items:center;justify-content:center;flex-direction:column;}
+#login-screen.hidden{display:none;}
+.login-input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--white);padding:14px 16px;font-size:15px;outline:none;box-sizing:border-box;-webkit-appearance:none;}
+.login-input:focus{border-color:var(--green);}
+.login-input::placeholder{color:var(--muted);}
+.login-btn{width:100%;background:var(--green);border:none;border-radius:10px;color:#000;padding:14px;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;}
+.login-btn:active{opacity:0.8;}
+.login-btn:disabled{opacity:0.5;cursor:not-allowed;}
+.logout-btn{position:absolute;top:16px;right:16px;background:none;border:1px solid var(--border);color:var(--muted);font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;}
+.logout-btn:active{color:var(--red);border-color:var(--red);}
 #pin-screen{position:fixed;inset:0;background:var(--bg);z-index:500;display:flex;align-items:center;justify-content:center;flex-direction:column;}
 #pin-screen.hidden{display:none;}
 .pin-content{display:flex;flex-direction:column;align-items:center;width:100%;max-width:320px;padding:0 24px;}
@@ -145,9 +155,10 @@ textarea{resize:none;height:72px;font-size:14px;}
 </style>
 </head>
 <body>
-<div class="header">
+<div class="header" style="position:relative">
   <h1>&#x1F4B3; Finance</h1>
   <p id="header-date"></p>
+  <button class="logout-btn" onclick="signOut()" title="Sign out">Sign out</button>
 </div>
 
 <div id="tab-add" class="tab-content active">
@@ -915,6 +926,7 @@ async function runMigration() {
 }
 
 init();
+initAuth();
 </script>
 
 <script>
@@ -970,14 +982,57 @@ async function exportCSV(){
   showToast('CSV exported');
 }
 
-(function initPin(){
+// ── Supabase Auth ──────────────────────────────────────────────────────────────
+async function initAuth() {
+  var { data: { session } } = await db.auth.getSession();
+  if (session) {
+    _showPinScreen();
+  } else {
+    document.getElementById('login-screen').classList.remove('hidden');
+  }
+  db.auth.onAuthStateChange(function(event, session) {
+    if (event === 'SIGNED_OUT') {
+      document.getElementById('pin-screen').classList.add('hidden');
+      document.getElementById('login-screen').classList.remove('hidden');
+      document.getElementById('login-email').value = '';
+      document.getElementById('login-password').value = '';
+      document.getElementById('login-error').textContent = '';
+    }
+  });
+}
+
+async function handleLogin() {
+  var email = document.getElementById('login-email').value.trim();
+  var password = document.getElementById('login-password').value;
+  var btn = document.getElementById('login-btn');
+  var errEl = document.getElementById('login-error');
+  if (!email || !password) { errEl.textContent = 'Please enter your email and password'; return; }
+  btn.disabled = true; btn.textContent = 'Signing in…'; errEl.textContent = '';
+  var { error } = await db.auth.signInWithPassword({ email: email, password: password });
+  if (error) {
+    errEl.textContent = error.message === 'Invalid login credentials' ? 'Incorrect email or password' : error.message;
+    btn.disabled = false; btn.textContent = 'Sign In';
+  } else {
+    document.getElementById('login-screen').classList.add('hidden');
+    btn.disabled = false; btn.textContent = 'Sign In';
+    _showPinScreen();
+  }
+}
+
+async function signOut() {
+  if (!confirm('Sign out of Finance?')) return;
+  await db.auth.signOut();
+}
+
+function _showPinScreen() {
   var stored = localStorage.getItem('financePin');
   window._pinMode = stored ? 'enter' : 'create';
   window._pinEntry = '';
   window._pinFirst = '';
   document.getElementById('pin-title').textContent = stored ? 'Enter your PIN' : 'Create a 4-digit PIN';
   if (stored) document.getElementById('pin-reset-btn').style.display = '';
-})();
+  document.getElementById('pin-screen').classList.remove('hidden');
+}
 
 function pinPress(d){ if(window._pinEntry.length >= 4) return; window._pinEntry += d; _pinUpdateDots(); if(window._pinEntry.length === 4) setTimeout(_pinProcess, 120); }
 function pinDel(){ window._pinEntry = window._pinEntry.slice(0,-1); _pinUpdateDots(); }
@@ -1007,7 +1062,21 @@ function pinReset(){ if(confirm('This will clear your PIN and you will need to s
   </div>
 </div>
 
-<div id="pin-screen">
+<div id="login-screen" class="hidden">
+  <div class="pin-content">
+    <div class="pin-logo">&#x1F512;</div>
+    <div class="pin-app-name">Finance</div>
+    <div id="login-subtitle" style="font-size:13px;color:var(--muted);margin-bottom:28px;text-align:center">Sign in to continue</div>
+    <div style="width:100%;display:flex;flex-direction:column;gap:12px;">
+      <input type="email" id="login-email" class="login-input" placeholder="Email" autocomplete="email" autocapitalize="none" onkeydown="if(event.key==='Enter')document.getElementById('login-password').focus()">
+      <input type="password" id="login-password" class="login-input" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter')handleLogin()">
+      <div id="login-error" style="color:var(--red);font-size:13px;min-height:18px;text-align:center"></div>
+      <button id="login-btn" class="login-btn" onclick="handleLogin()">Sign In</button>
+    </div>
+  </div>
+</div>
+
+<div id="pin-screen" class="hidden">
   <div class="pin-content">
     <div class="pin-logo">&#x1F4B3;</div>
     <div class="pin-app-name">Finance</div>
