@@ -784,35 +784,15 @@ async function loadLoans() {
 // ── DEBTS ────────────────────────────────────────────────────────────────────
 var GBP_KES_RATE = 165; // update manually when rate changes
 
-var DEBT_VERSION = 2; // bump this when defaults change to force-reset stored data
-function getDebtCards() {
-  try {
-    var stored = JSON.parse(localStorage.getItem('debtCards') || 'null');
-    var version = parseInt(localStorage.getItem('debtCardsVersion') || '0');
-    if (!stored || version < DEBT_VERSION) return null; // will fall back to defaults
-    return stored;
-  } catch(e) { return null; }
-}
+// Debts are stored in Supabase — no localStorage needed
+async function loadDebts() {
+  document.getElementById('debts-content').innerHTML = '<div class="card" style="color:var(--muted);text-align:center">Loading...</div>';
+  var { data: cards, error } = await db.from('debts').select('*').order('id');
+  if (error || !cards) {
+    document.getElementById('debts-content').innerHTML = '<div class="card" style="color:var(--red)">Failed to load debt data. Check Supabase connection.</div>';
+    return;
+  }
 
-function saveDebtCards(cards) {
-  localStorage.setItem('debtCards', JSON.stringify(cards));
-  localStorage.setItem('debtCardsVersion', String(DEBT_VERSION));
-}
-
-function getDefaultCards() {
-  return [
-    { id: 1, name: 'Kenya Card 1', balance: 98000, currency: 'KES', apr: 24 },
-    { id: 2, name: 'Kenya Card 2', balance: 130000, currency: 'KES', apr: 24 },
-    { id: 3, name: 'Halifax Clarity ···3111', balance: 1497.27, currency: 'GBP', apr: 29.89 },
-    { id: 4, name: 'Halifax Clarity ···8144', balance: 1491.18, currency: 'GBP', apr: 26.32 },
-    { id: 5, name: 'Barclaycard ···6229', balance: 8793.17, currency: 'GBP', apr: 25.15 },
-    { id: 6, name: 'Lloyds ···4783 ⭐ 0% promo', balance: 2748.15, currency: 'GBP', apr: 0 },
-  ];
-}
-
-function loadDebts() {
-  var cards = getDebtCards();
-  if (!cards) { cards = getDefaultCards(); saveDebtCards(cards); }
   var totalKES = 0, totalGBP = 0;
   cards.forEach(function(c) {
     if (c.currency === 'KES') totalKES += (c.balance || 0);
@@ -837,7 +817,7 @@ function loadDebts() {
   // Total KES equivalent
   html += '<div class="card"><div class="stat-row"><span class="stat-label">Total debt (KES equiv.)</span><span class="stat-value" style="color:var(--red)">' + fmtKES(Math.round(totalKESEquiv)) + '</span></div>';
   html += '<div class="stat-row"><span class="stat-label">Annual interest cost</span><span class="stat-value" style="color:var(--orange)">' + fmtKES(Math.round(annualInterest)) + '</span></div>';
-  html += '<div style="font-size:11px;color:var(--muted);margin-top:6px">GBP rate used: 1 GBP = ' + GBP_KES_RATE + ' KES</div></div>';
+  html += '<div style="font-size:11px;color:var(--muted);margin-top:6px">GBP rate used: 1 GBP = ' + GBP_KES_RATE + ' KES · Last updated: ' + (cards[0] ? (cards[0].updated_at || '').substring(0,10) : '–') + '</div></div>';
 
   // Individual cards
   html += '<div class="section-title">Cards</div>';
@@ -847,14 +827,14 @@ function loadDebts() {
     var cleared = bal === 0;
     html += '<div class="card">';
     html += '<div class="loan-top"><span class="loan-person" style="' + (cleared ? 'color:var(--green)' : '') + '">' + (cleared ? '✓ ' : '') + c.name + '</span>';
-    html += '<span class="loan-amount ' + (cleared ? 'settled-amt' : '') + '">' + (c.currency === 'GBP' ? 'GBP ' + bal.toLocaleString() : fmtKES(bal)) + '</span></div>';
+    html += '<span class="loan-amount ' + (cleared ? 'settled-amt' : '') + '">' + (c.currency === 'GBP' ? 'GBP ' + bal.toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}) : fmtKES(bal)) + '</span></div>';
     if (!cleared) {
       html += '<div class="loan-meta">APR ' + c.apr + '% · Monthly interest: ' + (c.currency === 'GBP' ? 'GBP ' + monthlyInt.toFixed(0) : fmtKES(Math.round(monthlyInt))) + '</div>';
     } else {
       html += '<div class="loan-meta" style="color:var(--green)">Cleared 🎉</div>';
     }
-    html += '<div class="loan-actions"><button class="settle-btn" style="border-color:var(--blue);color:var(--blue);background:rgba(74,158,255,0.1)" onclick="editDebtCard(' + c.id + ')">Update Balance</button>';
-    if (!cleared) html += '<button class="settle-btn" style="margin-left:4px" onclick="clearDebtCard(' + c.id + ')">Mark Cleared</button>';
+    html += '<div class="loan-actions"><button class="settle-btn" style="border-color:var(--blue);color:var(--blue);background:rgba(74,158,255,0.1)" onclick="editDebtCard(' + c.id + ',\'' + c.name.replace(/'/g,"\\'") + '\',' + bal + ',\'' + c.currency + '\')">Update Balance</button>';
+    if (!cleared) html += '<button class="settle-btn" style="margin-left:4px" onclick="clearDebtCard(' + c.id + ',\'' + c.name.replace(/'/g,"\\'") + '\')">Mark Cleared</button>';
     html += '</div></div>';
   });
 
@@ -866,27 +846,21 @@ function loadDebts() {
   document.getElementById('debts-content').innerHTML = html;
 }
 
-function editDebtCard(id) {
-  var cards = getDebtCards() || getDefaultCards();
-  var card = cards.find(function(c) { return c.id === id; });
-  if (!card) return;
-  var val = prompt('Enter new balance for ' + card.name + ' (' + card.currency + '):', card.balance || 0);
+async function editDebtCard(id, name, currentBal, currency) {
+  var val = prompt('Enter new balance for ' + name + ' (' + currency + '):', currentBal || 0);
   if (val === null) return;
   var num = parseFloat(val);
   if (isNaN(num) || num < 0) { showToast('Invalid amount', 'var(--red)'); return; }
-  card.balance = num;
-  saveDebtCards(cards);
+  var { error } = await db.from('debts').update({ balance: num, updated_at: new Date().toISOString() }).eq('id', id);
+  if (error) { showToast('Update failed', 'var(--red)'); return; }
   showToast('Balance updated');
   loadDebts();
 }
 
-function clearDebtCard(id) {
-  var cards = getDebtCards() || getDefaultCards();
-  var card = cards.find(function(c) { return c.id === id; });
-  if (!card) return;
-  if (!confirm('Mark ' + card.name + ' as fully cleared?')) return;
-  card.balance = 0;
-  saveDebtCards(cards);
+async function clearDebtCard(id, name) {
+  if (!confirm('Mark ' + name + ' as fully cleared?')) return;
+  var { error } = await db.from('debts').update({ balance: 0, updated_at: new Date().toISOString() }).eq('id', id);
+  if (error) { showToast('Update failed', 'var(--red)'); return; }
   showToast('Card cleared! 🎉');
   loadDebts();
 }
