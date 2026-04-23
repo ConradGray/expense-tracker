@@ -241,10 +241,15 @@ textarea{resize:none;height:72px;font-size:14px;}
   <div id="recent-content"><div class="empty">Loading...</div></div>
 </div>
 
+<div id="tab-debts" class="tab-content">
+  <div id="debts-content"><div class="empty">Loading...</div></div>
+</div>
+
 <nav class="bottom-nav">
   <button class="nav-btn active" id="nav-add" onclick="switchTab('add')"><span class="icon">&#10133;</span>Add</button>
   <button class="nav-btn" id="nav-month" onclick="switchTab('month')"><span class="icon">&#128202;</span>Month</button>
   <button class="nav-btn" id="nav-loans" onclick="switchTab('loans')"><span class="icon">&#129309;</span>Loans</button>
+  <button class="nav-btn" id="nav-debts" onclick="switchTab('debts')"><span class="icon">&#x1F4B3;</span>Debts</button>
   <button class="nav-btn" id="nav-recent" onclick="switchTab('recent')"><span class="icon">&#128336;</span>Recent</button>
 </nav>
 
@@ -375,6 +380,7 @@ function switchTab(tab) {
   if (tab === 'month') loadMonthSummary();
   if (tab === 'recent') loadRecent();
   if (tab === 'loans') loadLoans();
+  if (tab === 'debts') loadDebts();
 }
 
 function selectIncomeType(val) {
@@ -584,17 +590,64 @@ async function loadMonthSummary() {
   var expQ = db.from('expenses').select('*').gte('date',start).lte('date',end);
   if (currentTypeFilter === 'personal') expQ = expQ.eq('type','Personal');
   if (currentTypeFilter === 'business') expQ = expQ.eq('type','Business');
-  var [{ data: expenses }, { data: incomeData }] = await Promise.all([expQ, db.from('income').select('*').gte('date',start).lte('date',end)]);
+  // Last month range for trends
+  var prevMonth = currentMonth - 1, prevYear = currentYear;
+  if (prevMonth < 1) { prevMonth = 12; prevYear--; }
+  var prevStart = prevYear + '-' + String(prevMonth).padStart(2,'0') + '-01';
+  var prevLastDay = new Date(prevYear, prevMonth, 0).getDate();
+  var prevEnd = prevYear + '-' + String(prevMonth).padStart(2,'0') + '-' + String(prevLastDay).padStart(2,'0');
+
+  var [{ data: expenses }, { data: incomeData }, { data: prevExpenses }] = await Promise.all([
+    expQ,
+    db.from('income').select('*').gte('date',start).lte('date',end),
+    db.from('expenses').select('amount,category').gte('date',prevStart).lte('date',prevEnd)
+  ]);
   var budgets = getBudgets();
   var totalExp = 0, totalInc = 0, categories = {}, byType = {Personal:0,Business:0}, byPayment = {Mpesa:0,Card:0,Cash:0};
   (expenses||[]).forEach(function(e){ var a=parseFloat(e.amount); totalExp+=a; categories[e.category]=(categories[e.category]||0)+a; byType[e.type]=(byType[e.type]||0)+a; byPayment[e.payment]=(byPayment[e.payment]||0)+a; });
   (incomeData||[]).forEach(function(i){ totalInc+=parseFloat(i.amount); });
+  // Build prev month category totals for trends
+  var prevCats = {};
+  (prevExpenses||[]).forEach(function(e){ var a=parseFloat(e.amount); prevCats[e.category]=(prevCats[e.category]||0)+a; });
+  var prevTotalExp = Object.values(prevCats).reduce(function(s,v){return s+v;},0);
+
   var net = totalInc - totalExp;
   var html = '<div class="net-row">';
   html += '<div class="net-card"><div class="nc-amount nc-in">'+fmtKES(totalInc)+'</div><div class="nc-label">Income</div></div>';
   html += '<div class="net-card"><div class="nc-amount nc-out">'+fmtKES(totalExp)+'</div><div class="nc-label">Expenses</div></div>';
   html += '<div class="net-card"><div class="nc-amount '+(net>=0?'nc-net-pos':'nc-net-neg')+'">'+fmtKES(Math.abs(net))+'</div><div class="nc-label">'+(net>=0?'&#x25B2; Net':'&#x25BC; Net')+'</div></div>';
   html += '</div>';
+
+  // vs last month banner
+  if (prevTotalExp > 0 && totalExp > 0) {
+    var expDiff = totalExp - prevTotalExp;
+    var expDiffPct = Math.round((expDiff / prevTotalExp) * 100);
+    var trendColor = expDiff > 0 ? 'var(--red)' : 'var(--green)';
+    var trendArrow = expDiff > 0 ? '&#x25B2;' : '&#x25BC;';
+    var PREV_MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    html += '<div class="card" style="padding:10px 14px"><div style="font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px">vs '+PREV_MONTH_NAMES[prevMonth-1]+'</div>';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center">';
+    html += '<span style="font-size:13px;color:var(--muted)">Total spending</span>';
+    html += '<span style="font-size:14px;font-weight:700;color:'+trendColor+'">'+trendArrow+' '+Math.abs(expDiffPct)+'% ('+fmtKES(Math.abs(expDiff))+')</span>';
+    html += '</div>';
+    // Top movers
+    var movers = Object.keys(categories).map(function(cat){
+      return { cat: cat, diff: (categories[cat]||0) - (prevCats[cat]||0) };
+    }).filter(function(m){ return Math.abs(m.diff) > 500; }).sort(function(a,b){ return Math.abs(b.diff)-Math.abs(a.diff); }).slice(0,3);
+    if (movers.length > 0) {
+      html += '<div style="margin-top:8px;border-top:1px solid var(--border);padding-top:8px">';
+      movers.forEach(function(m){
+        var up = m.diff > 0;
+        var icon = CAT_ICONS[m.cat]||'&#x1F4E6;';
+        html += '<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0">';
+        html += '<span style="color:var(--muted)">'+icon+' '+m.cat+'</span>';
+        html += '<span style="color:'+(up?'var(--red)':'var(--green)')+';">'+(up?'▲':'▼')+' '+fmtKES(Math.abs(m.diff))+'</span>';
+        html += '</div>';
+      });
+      html += '</div>';
+    }
+    html += '</div>';
+  }
   if (currentTypeFilter === 'all' && totalExp > 0) {
     var pPct = Math.round((byType.Personal/totalExp)*100);
     html += '<div class="card"><div class="section-title">Personal vs Business</div>';
@@ -710,7 +763,7 @@ async function loadLoans() {
     html+='<div class="section-title">Outstanding</div><div class="card">';
     outstanding.forEach(function(l){
       var d=new Date(l.date).toLocaleDateString('en-KE',{day:'numeric',month:'short',year:'numeric'});
-      html+='<div class="loan-item"><div class="loan-top"><span class="loan-person">'+l.person+'</span><span class="loan-amount">'+fmtKES(l.amount)+'</span></div><div class="loan-meta">'+d+(l.purpose?' &#xB7; '+l.purpose:'')+'</div>'+(l.notes?'<div class="loan-meta">'+l.notes+'</div>':'')+'<div class="loan-actions"><button class="settle-btn" onclick="settleLoan(\''+l.id+'\',\''+l.person+'\','+l.amount+')">Mark Settled &#x2713;</button></div></div>';
+      html+='<div class="loan-item"><div class="loan-top"><span class="loan-person">'+l.person+'</span><span class="loan-amount">'+fmtKES(l.amount)+'</span></div><div class="loan-meta">'+d+(l.purpose?' &#xB7; '+l.purpose:'')+'</div>'+(l.notes?'<div class="loan-meta">'+l.notes+'</div>':'')+'<div class="loan-actions"><button class="settle-btn" style="background:rgba(74,158,255,0.15);border-color:var(--blue);color:var(--blue)" onclick="partialLoanPayment(\''+l.id+'\',\''+l.person+'\','+l.amount+')">Partial &#x1F4B8;</button><button class="settle-btn" style="margin-left:6px" onclick="settleLoan(\''+l.id+'\',\''+l.person+'\','+l.amount+')">Settled &#x2713;</button></div></div>';
     });
     html+='</div>';
   }
@@ -726,8 +779,141 @@ async function loadLoans() {
   document.getElementById('loans-content').innerHTML = html;
 }
 
+// ── DEBTS ────────────────────────────────────────────────────────────────────
+var GBP_KES_RATE = 165; // update manually when rate changes
+
+function getDebtCards() {
+  try { return JSON.parse(localStorage.getItem('debtCards') || 'null'); } catch(e) { return null; }
+}
+
+function saveDebtCards(cards) {
+  localStorage.setItem('debtCards', JSON.stringify(cards));
+}
+
+function getDefaultCards() {
+  return [
+    { id: 1, name: 'Kenya Card 1', balance: 98000, currency: 'KES', apr: 24 },
+    { id: 2, name: 'Kenya Card 2', balance: 130000, currency: 'KES', apr: 24 },
+    { id: 3, name: 'UK Card 1', balance: 0, currency: 'GBP', apr: 22 },
+    { id: 4, name: 'UK Card 2', balance: 0, currency: 'GBP', apr: 22 },
+    { id: 5, name: 'UK Card 3', balance: 0, currency: 'GBP', apr: 22 },
+    { id: 6, name: 'UK Card 4', balance: 0, currency: 'GBP', apr: 22 },
+  ];
+}
+
+function loadDebts() {
+  var cards = getDebtCards() || getDefaultCards();
+  var totalKES = 0, totalGBP = 0;
+  cards.forEach(function(c) {
+    if (c.currency === 'KES') totalKES += (c.balance || 0);
+    else totalGBP += (c.balance || 0);
+  });
+  var totalKESEquiv = totalKES + (totalGBP * GBP_KES_RATE);
+  var annualInterest = cards.reduce(function(sum, c) {
+    var bal = c.balance || 0;
+    var inKES = c.currency === 'GBP' ? bal * GBP_KES_RATE : bal;
+    return sum + (inKES * (c.apr / 100));
+  }, 0);
+
+  var html = '';
+
+  // Summary cards
+  html += '<div class="net-row">';
+  html += '<div class="net-card"><div class="nc-amount" style="color:var(--orange);font-size:16px">' + fmtKES(totalKES) + '</div><div class="nc-label">Kenya Debt</div></div>';
+  html += '<div class="net-card"><div class="nc-amount" style="color:var(--orange);font-size:16px">GBP ' + Math.round(totalGBP).toLocaleString() + '</div><div class="nc-label">UK Debt</div></div>';
+  html += '<div class="net-card"><div class="nc-amount" style="color:var(--red);font-size:14px">' + fmtKES(Math.round(annualInterest / 12)) + '</div><div class="nc-label">Monthly Interest</div></div>';
+  html += '</div>';
+
+  // Total KES equivalent
+  html += '<div class="card"><div class="stat-row"><span class="stat-label">Total debt (KES equiv.)</span><span class="stat-value" style="color:var(--red)">' + fmtKES(Math.round(totalKESEquiv)) + '</span></div>';
+  html += '<div class="stat-row"><span class="stat-label">Annual interest cost</span><span class="stat-value" style="color:var(--orange)">' + fmtKES(Math.round(annualInterest)) + '</span></div>';
+  html += '<div style="font-size:11px;color:var(--muted);margin-top:6px">GBP rate used: 1 GBP = ' + GBP_KES_RATE + ' KES</div></div>';
+
+  // Individual cards
+  html += '<div class="section-title">Cards</div>';
+  cards.forEach(function(c) {
+    var bal = c.balance || 0;
+    var monthlyInt = bal * (c.apr / 100) / 12;
+    var cleared = bal === 0;
+    html += '<div class="card">';
+    html += '<div class="loan-top"><span class="loan-person" style="' + (cleared ? 'color:var(--green)' : '') + '">' + (cleared ? '✓ ' : '') + c.name + '</span>';
+    html += '<span class="loan-amount ' + (cleared ? 'settled-amt' : '') + '">' + (c.currency === 'GBP' ? 'GBP ' + bal.toLocaleString() : fmtKES(bal)) + '</span></div>';
+    if (!cleared) {
+      html += '<div class="loan-meta">APR ' + c.apr + '% · Monthly interest: ' + (c.currency === 'GBP' ? 'GBP ' + monthlyInt.toFixed(0) : fmtKES(Math.round(monthlyInt))) + '</div>';
+    } else {
+      html += '<div class="loan-meta" style="color:var(--green)">Cleared 🎉</div>';
+    }
+    html += '<div class="loan-actions"><button class="settle-btn" style="border-color:var(--blue);color:var(--blue);background:rgba(74,158,255,0.1)" onclick="editDebtCard(' + c.id + ')">Update Balance</button>';
+    if (!cleared) html += '<button class="settle-btn" style="margin-left:4px" onclick="clearDebtCard(' + c.id + ')">Mark Cleared</button>';
+    html += '</div></div>';
+  });
+
+  // Rate edit
+  html += '<div class="card"><div style="font-size:12px;color:var(--muted);margin-bottom:8px">GBP → KES conversion rate</div>';
+  html += '<div style="display:flex;gap:8px;align-items:center"><input type="number" id="gbp-rate-input" value="' + GBP_KES_RATE + '" style="width:100px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--white);padding:6px 10px;font-size:14px">';
+  html += '<button class="settle-btn" onclick="updateGBPRate()">Update</button></div></div>';
+
+  document.getElementById('debts-content').innerHTML = html;
+}
+
+function editDebtCard(id) {
+  var cards = getDebtCards() || getDefaultCards();
+  var card = cards.find(function(c) { return c.id === id; });
+  if (!card) return;
+  var val = prompt('Enter new balance for ' + card.name + ' (' + card.currency + '):', card.balance || 0);
+  if (val === null) return;
+  var num = parseFloat(val);
+  if (isNaN(num) || num < 0) { showToast('Invalid amount', 'var(--red)'); return; }
+  card.balance = num;
+  saveDebtCards(cards);
+  showToast('Balance updated');
+  loadDebts();
+}
+
+function clearDebtCard(id) {
+  var cards = getDebtCards() || getDefaultCards();
+  var card = cards.find(function(c) { return c.id === id; });
+  if (!card) return;
+  if (!confirm('Mark ' + card.name + ' as fully cleared?')) return;
+  card.balance = 0;
+  saveDebtCards(cards);
+  showToast('Card cleared! 🎉');
+  loadDebts();
+}
+
+function updateGBPRate() {
+  var val = parseFloat(document.getElementById('gbp-rate-input').value);
+  if (isNaN(val) || val <= 0) { showToast('Invalid rate', 'var(--red)'); return; }
+  GBP_KES_RATE = val;
+  showToast('Rate updated');
+  loadDebts();
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function partialLoanPayment(id, person, outstanding) {
+  var val = prompt(person + ' — outstanding: ' + fmtKES(outstanding) + '\nHow much did they pay back?');
+  if (val === null) return;
+  var payment = parseFloat(val);
+  if (isNaN(payment) || payment <= 0) { showToast('Invalid amount', 'var(--red)'); return; }
+  if (payment > outstanding) { showToast('Payment exceeds outstanding balance', 'var(--red)'); return; }
+  var today = new Date().toISOString().split('T')[0];
+  var remaining = outstanding - payment;
+  if (remaining <= 0) {
+    // Fully paid via partial payment flow
+    await db.from('loans').update({ status: 'settled', settled_date: today, amount: 0 }).eq('id', id);
+    await db.from('income').insert({ date: today, amount: payment, source: 'Loan Repayment - ' + person, notes: 'Final payment — loan settled' });
+    showToast('Fully settled — income logged');
+  } else {
+    // Reduce outstanding balance
+    await db.from('loans').update({ amount: remaining }).eq('id', id);
+    await db.from('income').insert({ date: today, amount: payment, source: 'Loan Repayment - ' + person, notes: 'Partial repayment. Remaining: ' + fmtKES(remaining) });
+    showToast(fmtKES(payment) + ' received. ' + fmtKES(remaining) + ' still owed.');
+  }
+  loadLoans();
+}
+
 async function settleLoan(id, person, amount) {
-  if (!confirm('Mark loan from '+person+' as settled?')) return;
+  if (!confirm('Mark loan from '+person+' as settled in full?')) return;
   var today = new Date().toISOString().split('T')[0];
   await db.from('loans').update({status:'settled',settled_date:today}).eq('id',id);
   await db.from('income').insert({date:today,amount:parseFloat(amount),source:'Loan Repayment - '+person,notes:'Settled loan'});
@@ -745,7 +931,6 @@ async function runMigration() {
 }
 
 init();
-runMigration();
 </script>
 
 <script>
@@ -789,7 +974,7 @@ async function exportCSV(){
   ]);
   var exp=r1.data||[], inc=r2.data||[];
   var rows=['Type,Date,Description,Category,Amount (KES),Payment Method,Personal/Business,Notes'];
-  exp.forEach(function(e){ rows.push('Expense,'+e.date+',"'+(e.description||'').replace(/"/g,'""')+'","'+(e.category||'')+'",'+e.amount+',"'+(e.payment_method||'')+'","'+(e.type||'')+'","'+(e.notes||'').replace(/"/g,'""')+'"'); });
+  exp.forEach(function(e){ rows.push('Expense,'+e.date+',"'+(e.description||'').replace(/"/g,'""')+'","'+(e.category||'')+'",'+e.amount+',"'+(e.payment||'')+'","'+(e.type||'')+'","'+(e.notes||'').replace(/"/g,'""')+'"'); });
   inc.forEach(function(i){ rows.push('Income,'+i.date+',"'+(i.source||'').replace(/"/g,'""')+'","",'+i.amount+',"","'+(i.type||'')+'","'+(i.notes||'').replace(/"/g,'""')+'"'); });
   var csv=rows.join('\n');
   var blob=new Blob([csv],{type:'text/csv'});
