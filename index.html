@@ -195,9 +195,67 @@ textarea{resize:none;height:72px;font-size:14px;}
 .pin-key.del{font-size:18px;background:none;border-color:transparent;color:var(--muted);}
 .pin-key.empty{background:none;border-color:transparent;pointer-events:none;}
 .pin-reset{margin-top:24px;font-size:12px;color:var(--muted);background:none;border:none;cursor:pointer;text-decoration:underline;}
+
+/* SidePocket icon system */
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
+.amount-prefix input,.expense-amount,.income-amt,.stat-value,.nc-amount,#header-date{font-variant-numeric:tabular-nums;}
+.icon-svg{width:1em;height:1em;display:inline-block;vertical-align:-0.15em;}
+.nav-btn .icon-svg{width:22px;height:22px;}
+.nav-btn .icon{display:none;}
+.add-type-btn .icon-svg{width:18px;height:18px;margin-right:6px;vertical-align:-0.2em;}
+.month-action-btn .icon-svg{width:16px;height:16px;margin-right:6px;vertical-align:-0.2em;}
+.expense-icon > svg,.expense-icon .icon-svg,.expense-icon .cat-icon-svg{width:22px;height:22px;margin:0;display:block;}
+.cat-icon-svg{width:18px;height:18px;display:inline-block;vertical-align:-0.25em;margin-right:6px;}
+.edit-btn .icon-svg,.delete-btn .icon-svg,.settle-btn .icon-svg{width:14px;height:14px;vertical-align:-0.2em;}
+.drill-title .icon-svg{width:16px;height:16px;margin-right:4px;vertical-align:-0.2em;}
+
+.cat-picker{position:relative;}
+.cat-picker-trigger{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--white);padding:12px;font-size:16px;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:space-between;text-align:left;}
+.cat-picker-trigger:focus{outline:none;border-color:var(--green);}
+.cat-picker-display{display:flex;align-items:center;gap:8px;}
+.cat-picker-chevron{width:18px;height:18px;color:var(--muted);transition:transform 0.15s;flex-shrink:0;}
+.cat-picker.open .cat-picker-chevron{transform:rotate(180deg);}
+.cat-picker-menu{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:6px;max-height:280px;overflow-y:auto;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,0.3);}
+.cat-picker.open .cat-picker-menu{display:block;}
+.cat-picker-row{width:100%;background:none;border:none;color:var(--white);padding:10px 10px;border-radius:6px;font-size:15px;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:10px;text-align:left;}
+.cat-picker-row:hover{background:var(--bg);}
+.cat-picker-trigger .cat-icon-svg,.cat-picker-row .cat-icon-svg{margin:0;flex-shrink:0;}
 </style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+<symbol id="icon-add" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="12" y1="7" x2="12" y2="17"/></symbol>
+<symbol id="icon-month" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="20" x2="6" y2="13"/><line x1="11" y1="20" x2="11" y2="9"/><line x1="16" y1="20" x2="16" y2="15"/><line x1="20" y1="20" x2="20" y2="6"/><line x1="3" y1="20" x2="22" y2="20"/></symbol>
+<symbol id="icon-loans" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12 L8 8 L12 8 L15 11"/><path d="M21 12 L16 8 L12 8 L9 11"/><path d="M9 11 Q11 14 13 14 L15 14 Q17 14 17 11"/><line x1="3" y1="12" x2="3" y2="16"/><line x1="21" y1="12" x2="21" y2="16"/></symbol>
+<symbol id="icon-debts" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="6" y1="15" x2="10" y2="15"/></symbol>
+<symbol id="icon-recent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12,7 12,12 16,15"/></symbol>
+<symbol id="icon-expense" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M12 10 L12 16"/><polyline points="9,13 12,16 15,13"/></symbol>
+<symbol id="icon-income" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M12 16 L12 10"/><polyline points="9,13 12,10 15,13"/></symbol>
+<symbol id="icon-loan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="15" y2="9"/><line x1="20" y1="15" x2="9" y2="15"/><polyline points="8,5 4,9 8,13"/><polyline points="16,11 20,15 16,19"/></symbol>
+<symbol id="icon-cat-groceries" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,4 5,4 7,16 19,16"/><line x1="7" y1="9" x2="20" y2="9"/><line x1="7" y1="13" x2="20" y2="13"/><circle cx="9" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/></symbol>
+<symbol id="icon-cat-eatingout" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3 L5 11 Q5 12 6 12 L8 12 Q9 12 9 11 L9 3"/><line x1="7" y1="12" x2="7" y2="21"/><path d="M16 3 Q14 3 14 7 Q14 11 16 11 L16 21"/></symbol>
+<symbol id="icon-cat-fooddelivery" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9 L7 4 L13 4 L15 9"/><rect x="3" y="9" width="14" height="9" rx="1"/><line x1="3" y1="13" x2="17" y2="13"/><circle cx="18" cy="18" r="2.5"/></symbol>
+<symbol id="icon-cat-utilities" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17 L9 14 Q5 12 5 8 Q5 3 12 3 Q19 3 19 8 Q19 12 15 14 L15 17 Z"/><line x1="9" y1="20" x2="15" y2="20"/></symbol>
+<symbol id="icon-cat-transport" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14 L5 8 L19 8 L21 14 L21 18 L18 18 L18 16 L6 16 L6 18 L3 18 Z"/><circle cx="7" cy="17" r="1.5"/><circle cx="17" cy="17" r="1.5"/></symbol>
+<symbol id="icon-cat-personalcare" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="7" r="3"/><circle cx="6" cy="17" r="3"/><line x1="9" y1="9" x2="20" y2="20"/><line x1="9" y1="15" x2="20" y2="4"/></symbol>
+<symbol id="icon-cat-entertainment" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17 L9 5 L18 3 L18 15"/><circle cx="7" cy="17" r="2"/><circle cx="16" cy="15" r="2"/></symbol>
+<symbol id="icon-cat-salaries" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7 L9 4 L15 4 L15 7"/><line x1="3" y1="13" x2="21" y2="13"/></symbol>
+<symbol id="icon-cat-loans" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12 L8 8 L12 8 L15 11"/><path d="M21 12 L16 8 L12 8 L9 11"/><path d="M9 11 Q11 14 13 14 L15 14 Q17 14 17 11"/><line x1="3" y1="12" x2="3" y2="16"/><line x1="21" y1="12" x2="21" y2="16"/></symbol>
+<symbol id="icon-cat-charitygift" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="18" height="11" rx="1"/><rect x="3" y="6" width="18" height="3"/><line x1="12" y1="6" x2="12" y2="20"/><path d="M12 6 Q9 6 8 4 Q8 2 10 2 Q12 2 12 6"/><path d="M12 6 Q15 6 16 4 Q16 2 14 2 Q12 2 12 6"/></symbol>
+<symbol id="icon-cat-subscriptions" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12 A9 9 0 0 0 6 6"/><polyline points="3,3 3,8 8,8"/><path d="M3 12 A9 9 0 0 0 18 18"/><polyline points="21,21 21,16 16,16"/></symbol>
+<symbol id="icon-cat-other" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8 L12 3 L21 8 L21 17 L12 22 L3 17 Z"/><polyline points="3,8 12,13 21,8"/><line x1="12" y1="13" x2="12" y2="22"/></symbol>
+<symbol id="icon-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4 L20 10 L8 22 L2 22 L2 16 Z"/><line x1="13" y1="5" x2="19" y2="11"/></symbol>
+<symbol id="icon-delete" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,6 5,6 21,6"/><path d="M8 6 L8 4 Q8 2 10 2 L14 2 Q16 2 16 4 L16 6"/><path d="M19 6 L18 21 Q18 22 17 22 L7 22 Q6 22 6 21 L5 6"/></symbol>
+<symbol id="icon-export" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 L12 16"/><polyline points="7,11 12,16 17,11"/><path d="M3 17 L3 20 Q3 21 4 21 L20 21 Q21 21 21 20 L21 17"/></symbol>
+<symbol id="icon-budgets" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/></symbol>
+<symbol id="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="4,12 10,18 20,6"/></symbol>
+<symbol id="icon-chevron-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6,9 12,15 18,9"/></symbol>
+</defs>
+</svg>
 <div class="header" style="position:relative">
   <h1 style="display:flex;align-items:center;gap:8px;"><svg width="22" height="22" viewBox="0 0 200 200" style="flex-shrink:0" aria-hidden="true"><g transform="translate(100, 100)" fill="none" stroke="currentColor" stroke-width="16" stroke-linejoin="round" stroke-linecap="round"><path d="M -60 -44 L -60 24 Q -60 44 -40 44 L -9 44 Q 0 44 0 35 Q 0 44 9 44 L 40 44 Q 60 44 60 24 L 60 -44 Z"/><line x1="0" y1="-44" x2="0" y2="34"/></g><circle cx="70" cy="115" r="7" fill="#10b981"/><circle cx="130" cy="115" r="7" fill="#f59e0b"/></svg><span>Side<span style="font-weight:400">Pocket</span></span></h1>
   <p id="header-date"></p>
@@ -206,28 +264,15 @@ textarea{resize:none;height:72px;font-size:14px;}
 
 <div id="tab-add" class="tab-content active">
   <div class="add-type-toggle">
-    <button class="add-type-btn active" id="add-type-expense" onclick="switchAddType('expense')">&#x1F4B8; Expense</button>
-    <button class="add-type-btn" id="add-type-income" onclick="switchAddType('income')">&#x1F4B0; Income</button>
-    <button class="add-type-btn" id="add-type-loan" onclick="switchAddType('loan')">&#x1F91D; Loan</button>
+    <button class="add-type-btn active" id="add-type-expense" onclick="switchAddType('expense')"><svg class="icon-svg" aria-hidden="true"><use href="#icon-expense"/></svg> Expense</button>
+    <button class="add-type-btn" id="add-type-income" onclick="switchAddType('income')"><svg class="icon-svg" aria-hidden="true"><use href="#icon-income"/></svg> Income</button>
+    <button class="add-type-btn" id="add-type-loan" onclick="switchAddType('loan')"><svg class="icon-svg" aria-hidden="true"><use href="#icon-loan"/></svg> Loan</button>
   </div>
   <div id="form-expense">
     <div class="form-group"><label>Amount</label><div class="amount-prefix"><input type="number" id="f-amount" placeholder="0" min="0" step="1"/></div></div>
     <div class="form-group"><label>Description</label><input type="text" id="f-desc" placeholder="What was it for?" /></div>
     <div class="form-group"><label>Category</label>
-      <select id="f-category">
-        <option value="Groceries">&#x1F6D2; Groceries</option>
-        <option value="Eating Out">&#x1F37D; Eating Out</option>
-        <option value="Food Delivery">&#x1F6F5; Food Delivery</option>
-        <option value="Utilities">&#x1F4A1; Utilities</option>
-        <option value="Transport">&#x1F697; Transport</option>
-        <option value="Personal Care">&#x1F486; Personal Care</option>
-        <option value="Entertainment">&#x1F389; Entertainment</option>
-        <option value="Salaries">&#x1F4BC; Salaries</option>
-        <option value="Loans">&#x1F91D; Loans</option>
-        <option value="Charity/Gift">&#x1F381; Charity/Gift</option>
-        <option value="Subscriptions">&#x1F504; Subscriptions</option>
-        <option value="Other">&#x1F4E6; Other</option>
-      </select>
+      <div class="cat-picker" id="f-category-picker"><button type="button" class="cat-picker-trigger" onclick="toggleCatPicker('f-category')"><span class="cat-picker-display"><svg class="cat-icon-svg" id="f-category-icon" aria-hidden="true"><use href="#icon-cat-groceries"/></svg><span id="f-category-label">Groceries</span></span><svg class="cat-picker-chevron" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button><input type="hidden" id="f-category" value="Groceries"/><div class="cat-picker-menu" id="f-category-menu"><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Groceries','icon-cat-groceries')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-groceries"/></svg><span>Groceries</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Eating Out','icon-cat-eatingout')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-eatingout"/></svg><span>Eating Out</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Food Delivery','icon-cat-fooddelivery')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-fooddelivery"/></svg><span>Food Delivery</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Utilities','icon-cat-utilities')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-utilities"/></svg><span>Utilities</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Transport','icon-cat-transport')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-transport"/></svg><span>Transport</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Personal Care','icon-cat-personalcare')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-personalcare"/></svg><span>Personal Care</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Entertainment','icon-cat-entertainment')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-entertainment"/></svg><span>Entertainment</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Salaries','icon-cat-salaries')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-salaries"/></svg><span>Salaries</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Loans','icon-cat-loans')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-loans"/></svg><span>Loans</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Charity/Gift','icon-cat-charitygift')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-charitygift"/></svg><span>Charity/Gift</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Subscriptions','icon-cat-subscriptions')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-subscriptions"/></svg><span>Subscriptions</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Other','icon-cat-other')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-other"/></svg><span>Other</span></button></div></div>
     </div>
     <div class="form-group"><label>Type</label>
       <div class="toggle-group" id="type-group">
@@ -277,8 +322,8 @@ textarea{resize:none;height:72px;font-size:14px;}
     <button onclick="changeMonth(1)">&#8250;</button>
   </div>
   <div class="month-actions">
-    <button class="month-action-btn" onclick="exportCSV()">&#x1F4CA; Export</button>
-    <button class="month-action-btn" onclick="openBudgetModal()">&#x1F3AF; Budgets</button>
+    <button class="month-action-btn" onclick="exportCSV()"><svg class="icon-svg" aria-hidden="true"><use href="#icon-export"/></svg> Export</button>
+    <button class="month-action-btn" onclick="openBudgetModal()"><svg class="icon-svg" aria-hidden="true"><use href="#icon-budgets"/></svg> Budgets</button>
   </div>
   <div class="type-filter">
     <button class="type-filter-btn active" id="tf-all" onclick="setTypeFilter('all')">All</button>
@@ -301,11 +346,11 @@ textarea{resize:none;height:72px;font-size:14px;}
 </div>
 
 <nav class="bottom-nav">
-  <button class="nav-btn active" id="nav-add" onclick="switchTab('add')"><span class="icon">&#10133;</span>Add</button>
-  <button class="nav-btn" id="nav-month" onclick="switchTab('month')"><span class="icon">&#128202;</span>Month</button>
-  <button class="nav-btn" id="nav-loans" onclick="switchTab('loans')"><span class="icon">&#129309;</span>Loans</button>
-  <button class="nav-btn" id="nav-debts" onclick="switchTab('debts')"><span class="icon">&#x1F4B3;</span>Debts</button>
-  <button class="nav-btn" id="nav-recent" onclick="switchTab('recent')"><span class="icon">&#128336;</span>Recent</button>
+  <button class="nav-btn active" id="nav-add" onclick="switchTab('add')"><svg class="icon-svg" aria-hidden="true"><use href="#icon-add"/></svg>Add</button>
+  <button class="nav-btn" id="nav-month" onclick="switchTab('month')"><svg class="icon-svg" aria-hidden="true"><use href="#icon-month"/></svg>Month</button>
+  <button class="nav-btn" id="nav-loans" onclick="switchTab('loans')"><svg class="icon-svg" aria-hidden="true"><use href="#icon-loans"/></svg>Loans</button>
+  <button class="nav-btn" id="nav-debts" onclick="switchTab('debts')"><svg class="icon-svg" aria-hidden="true"><use href="#icon-debts"/></svg>Debts</button>
+  <button class="nav-btn" id="nav-recent" onclick="switchTab('recent')"><svg class="icon-svg" aria-hidden="true"><use href="#icon-recent"/></svg>Recent</button>
 </nav>
 
 <!-- Category drill-down -->
@@ -323,7 +368,7 @@ textarea{resize:none;height:72px;font-size:14px;}
 <div class="drill-overlay" id="edit-overlay" style="display:none" onclick="closeEdit(event)">
   <div class="drill-panel">
     <div class="drill-header">
-      <span class="drill-title" id="edit-title">&#x270F;&#xFE0F; Edit</span>
+      <span class="drill-title" id="edit-title"><svg class="icon-svg" aria-hidden="true"><use href="#icon-edit"/></svg> Edit</span>
       <button class="drill-close" onclick="closeEdit()">&#10005;</button>
     </div>
     <!-- Edit Expense form -->
@@ -331,20 +376,7 @@ textarea{resize:none;height:72px;font-size:14px;}
       <div class="form-group"><label>Amount</label><div class="amount-prefix"><input type="number" id="e-amount" placeholder="0" min="0" step="1"/></div></div>
       <div class="form-group"><label>Description</label><input type="text" id="e-desc" placeholder="What was it for?" /></div>
       <div class="form-group"><label>Category</label>
-        <select id="e-category">
-          <option value="Groceries">&#x1F6D2; Groceries</option>
-          <option value="Eating Out">&#x1F37D; Eating Out</option>
-          <option value="Food Delivery">&#x1F6F5; Food Delivery</option>
-          <option value="Utilities">&#x1F4A1; Utilities</option>
-          <option value="Transport">&#x1F697; Transport</option>
-          <option value="Personal Care">&#x1F486; Personal Care</option>
-          <option value="Entertainment">&#x1F389; Entertainment</option>
-          <option value="Salaries">&#x1F4BC; Salaries</option>
-          <option value="Loans">&#x1F91D; Loans</option>
-          <option value="Charity/Gift">&#x1F381; Charity/Gift</option>
-          <option value="Subscriptions">&#x1F504; Subscriptions</option>
-          <option value="Other">&#x1F4E6; Other</option>
-        </select>
+        <div class="cat-picker" id="e-category-picker"><button type="button" class="cat-picker-trigger" onclick="toggleCatPicker('e-category')"><span class="cat-picker-display"><svg class="cat-icon-svg" id="e-category-icon" aria-hidden="true"><use href="#icon-cat-groceries"/></svg><span id="e-category-label">Groceries</span></span><svg class="cat-picker-chevron" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button><input type="hidden" id="e-category" value="Groceries"/><div class="cat-picker-menu" id="e-category-menu"><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Groceries','icon-cat-groceries')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-groceries"/></svg><span>Groceries</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Eating Out','icon-cat-eatingout')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-eatingout"/></svg><span>Eating Out</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Food Delivery','icon-cat-fooddelivery')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-fooddelivery"/></svg><span>Food Delivery</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Utilities','icon-cat-utilities')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-utilities"/></svg><span>Utilities</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Transport','icon-cat-transport')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-transport"/></svg><span>Transport</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Personal Care','icon-cat-personalcare')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-personalcare"/></svg><span>Personal Care</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Entertainment','icon-cat-entertainment')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-entertainment"/></svg><span>Entertainment</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Salaries','icon-cat-salaries')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-salaries"/></svg><span>Salaries</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Loans','icon-cat-loans')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-loans"/></svg><span>Loans</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Charity/Gift','icon-cat-charitygift')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-charitygift"/></svg><span>Charity/Gift</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Subscriptions','icon-cat-subscriptions')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-subscriptions"/></svg><span>Subscriptions</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Other','icon-cat-other')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-other"/></svg><span>Other</span></button></div></div>
       </div>
       <div class="form-group"><label>Type</label>
         <div class="toggle-group" id="e-type-group">
@@ -393,18 +425,18 @@ var selectedType = 'Personal', selectedPayment = 'Mpesa', selectedIncomeType = '
 var currentMonth, currentYear, currentTypeFilter = 'all';
 var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 var CAT_ICONS = {
-  'Groceries':'&#x1F6D2;',
-  'Eating Out':'&#x1F37D;',
-  'Food Delivery':'&#x1F6F5;',
-  'Utilities':'&#x1F4A1;',
-  'Transport':'&#x1F697;',
-  'Personal Care':'&#x1F486;',
-  'Entertainment':'&#x1F389;',
-  'Salaries':'&#x1F4BC;',
-  'Loans':'&#x1F91D;',
-  'Charity/Gift':'&#x1F381;',
-  'Subscriptions':'&#x1F504;',
-  'Other':'&#x1F4E6;'
+  'Groceries':'<svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-groceries"/></svg>',
+  'Eating Out':'<svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-eatingout"/></svg>',
+  'Food Delivery':'<svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-fooddelivery"/></svg>',
+  'Utilities':'<svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-utilities"/></svg>',
+  'Transport':'<svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-transport"/></svg>',
+  'Personal Care':'<svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-personalcare"/></svg>',
+  'Entertainment':'<svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-entertainment"/></svg>',
+  'Salaries':'<svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-salaries"/></svg>',
+  'Loans':'<svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-loans"/></svg>',
+  'Charity/Gift':'<svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-charitygift"/></svg>',
+  'Subscriptions':'<svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-subscriptions"/></svg>',
+  'Other':'<svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-other"/></svg>'
 };
 
 // Edit state
@@ -495,7 +527,7 @@ async function openEditExpense(id, cat) {
   document.getElementById('edit-form-income').style.display = 'none';
   document.getElementById('e-amount').value = data.amount;
   document.getElementById('e-desc').value = data.description || '';
-  document.getElementById('e-category').value = data.category || 'Other';
+  setCatValue('e-category', data.category || 'Other');
   document.getElementById('e-date').value = data.date;
   document.getElementById('e-notes').value = data.notes || '';
   selectEditType(data.type || 'Personal');
@@ -705,7 +737,7 @@ async function loadMonthSummary() {
       html += '<div style="margin-top:8px;border-top:1px solid var(--border);padding-top:8px">';
       movers.forEach(function(m){
         var up = m.diff > 0;
-        var icon = CAT_ICONS[m.cat]||'&#x1F4E6;';
+        var icon = CAT_ICONS[m.cat]||'<svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-other"/></svg>';
         html += '<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0">';
         html += '<span style="color:var(--muted)">'+icon+' '+m.cat+'</span>';
         html += '<span style="color:'+(up?'var(--red)':'var(--green)')+';">'+(up?'▲':'▼')+' '+fmtKES(Math.abs(m.diff))+'</span>';
@@ -734,7 +766,7 @@ async function loadMonthSummary() {
   if (sortedCats.length > 0) {
     html += '<div class="section-title">By Category</div>';
     sortedCats.forEach(function(cat){
-      var amt=categories[cat], budget=budgets[cat], icon=CAT_ICONS[cat]||'&#x1F4E6;';
+      var amt=categories[cat], budget=budgets[cat], icon=CAT_ICONS[cat]||'<svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-other"/></svg>';
       html += '<div class="card category-card" onclick="drillCategory(\''+cat+'\')"><div class="stat-row"><span class="stat-label">'+icon+' '+cat+'</span><span class="stat-value">'+fmtKES(amt)+' &#x203A;</span></div>';
       if (budget) { var pct=Math.min(100,Math.round((amt/budget)*100)),over=amt>budget; html+='<div class="budget-bar-wrap"><div class="budget-bar-bg"><div class="budget-bar-fill'+(over?' over':'')+'" style="width:'+pct+'%"></div></div><div class="budget-meta"><span>'+pct+'% of budget</span><span>'+fmtKES(budget)+'</span></div></div>'; }
       html += '</div>';
@@ -751,7 +783,7 @@ async function loadMonthSummary() {
     html += '<div class="card">';
     incomeData.forEach(function(i){
       var d=new Date(i.date).toLocaleDateString('en-KE',{day:'numeric',month:'short'});
-      html+='<div class="stat-row"><span class="stat-label">'+i.source+' <span style="font-size:11px;color:var(--muted)">&#xB7; '+d+'</span></span><span class="stat-value" style="color:var(--blue)">'+fmtKES(i.amount)+'</span><button class="edit-btn" onclick="openEditIncome(\''+i.id+'\')">&#x270F;&#xFE0F;</button><button class="delete-btn" onclick="deleteIncome(\''+i.id+'\')">&#x1F5D1;</button></div>';
+      html+='<div class="stat-row"><span class="stat-label">'+i.source+' <span style="font-size:11px;color:var(--muted)">&#xB7; '+d+'</span></span><span class="stat-value" style="color:var(--blue)">'+fmtKES(i.amount)+'</span><button class="edit-btn" onclick="openEditIncome(\''+i.id+'\')"><svg class="icon-svg" aria-hidden="true"><use href="#icon-edit"/></svg></button><button class="delete-btn" onclick="deleteIncome(\''+i.id+'\')"><svg class="icon-svg" aria-hidden="true"><use href="#icon-delete"/></svg></button></div>';
     });
     html += '</div>';
   }
@@ -766,12 +798,12 @@ async function drillCategory(cat) {
   if (currentTypeFilter==='personal') q=q.eq('type','Personal');
   if (currentTypeFilter==='business') q=q.eq('type','Business');
   var { data } = await q;
-  document.getElementById('drill-title').textContent = (CAT_ICONS[cat]||'&#x1F4E6;')+' '+cat;
+  document.getElementById('drill-title').textContent = (CAT_ICONS[cat]||'<svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-other"/></svg>')+' '+cat;
   var html = !data||data.length===0 ? '<div class="empty">No transactions</div>' : '<div class="card">';
   if (data&&data.length>0) {
     data.forEach(function(e){
       var d=new Date(e.date).toLocaleDateString('en-KE',{day:'numeric',month:'short'});
-      html+='<div class="expense-item"><div class="expense-body"><div class="expense-desc">'+e.description+'</div><div class="expense-meta">'+d+' &#xB7; '+e.payment+' &#xB7; <span style="color:'+(e.type==='Business'?'var(--orange)':'var(--blue)')+'">'+e.type+'</span></div></div><div class="expense-amount">'+fmtKES(e.amount)+'</div><button class="edit-btn" onclick="openEditExpense(\''+e.id+'\',\''+cat+'\')">&#x270F;&#xFE0F;</button><button class="delete-btn" onclick="deleteDrillExpense(\''+e.id+'\',\''+cat+'\')">&#x1F5D1;&#xFE0F;</button></div>';
+      html+='<div class="expense-item"><div class="expense-body"><div class="expense-desc">'+e.description+'</div><div class="expense-meta">'+d+' &#xB7; '+e.payment+' &#xB7; <span style="color:'+(e.type==='Business'?'var(--orange)':'var(--blue)')+'">'+e.type+'</span></div></div><div class="expense-amount">'+fmtKES(e.amount)+'</div><button class="edit-btn" onclick="openEditExpense(\''+e.id+'\',\''+cat+'\')"><svg class="icon-svg" aria-hidden="true"><use href="#icon-edit"/></svg></button><button class="delete-btn" onclick="deleteDrillExpense(\''+e.id+'\',\''+cat+'\')"><svg class="icon-svg" aria-hidden="true"><use href="#icon-delete"/></svg></button></div>';
     });
     html+='</div>';
   }
@@ -805,10 +837,10 @@ async function loadRecent() {
   combined.forEach(function(e){
     var d=new Date(e.date).toLocaleDateString('en-KE',{day:'numeric',month:'short'});
     if (e._type==='income') {
-      html+='<div class="expense-item"><div class="expense-icon income-icon">&#x1F4B0;</div><div class="expense-body"><div class="expense-desc">'+e.source+'</div><div class="expense-meta">Income &#xB7; '+d+'</div></div><div class="expense-amount income-amt">+'+fmtKES(e.amount)+'</div><button class="edit-btn" onclick="openEditIncome(\''+e.id+'\')">&#x270F;&#xFE0F;</button><button class="delete-btn" onclick="deleteIncome(\''+e.id+'\')">&#x1F5D1;&#xFE0F;</button></div>';
+      html+='<div class="expense-item"><div class="expense-icon income-icon"><svg class="icon-svg" aria-hidden="true"><use href="#icon-income"/></svg></div><div class="expense-body"><div class="expense-desc">'+e.source+'</div><div class="expense-meta">Income &#xB7; '+d+'</div></div><div class="expense-amount income-amt">+'+fmtKES(e.amount)+'</div><button class="edit-btn" onclick="openEditIncome(\''+e.id+'\')"><svg class="icon-svg" aria-hidden="true"><use href="#icon-edit"/></svg></button><button class="delete-btn" onclick="deleteIncome(\''+e.id+'\')"><svg class="icon-svg" aria-hidden="true"><use href="#icon-delete"/></svg></button></div>';
     } else {
-      var icon=CAT_ICONS[e.category]||'&#x1F4E6;', tc=e.type==='Business'?'business':'personal';
-      html+='<div class="expense-item"><div class="expense-icon '+tc+'">'+icon+'</div><div class="expense-body"><div class="expense-desc">'+e.description+'</div><div class="expense-meta">'+e.category+' &#xB7; '+d+' &#xB7; '+e.payment+'</div></div><div class="expense-amount">'+fmtKES(e.amount)+'</div><button class="edit-btn" onclick="openEditExpense(\''+e.id+'\',null)">&#x270F;&#xFE0F;</button><button class="delete-btn" onclick="deleteExpense(\''+e.id+'\')">&#x1F5D1;&#xFE0F;</button></div>';
+      var icon=CAT_ICONS[e.category]||'<svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-other"/></svg>', tc=e.type==='Business'?'business':'personal';
+      html+='<div class="expense-item"><div class="expense-icon '+tc+'">'+icon+'</div><div class="expense-body"><div class="expense-desc">'+e.description+'</div><div class="expense-meta">'+e.category+' &#xB7; '+d+' &#xB7; '+e.payment+'</div></div><div class="expense-amount">'+fmtKES(e.amount)+'</div><button class="edit-btn" onclick="openEditExpense(\''+e.id+'\',null)"><svg class="icon-svg" aria-hidden="true"><use href="#icon-edit"/></svg></button><button class="delete-btn" onclick="deleteExpense(\''+e.id+'\')"><svg class="icon-svg" aria-hidden="true"><use href="#icon-delete"/></svg></button></div>';
     }
   });
   html += '</div>';
@@ -843,7 +875,7 @@ async function loadLoans() {
     html+='<div class="section-title">Outstanding</div><div class="card">';
     outstanding.forEach(function(l){
       var d=new Date(l.date).toLocaleDateString('en-KE',{day:'numeric',month:'short',year:'numeric'});
-      html+='<div class="loan-item"><div class="loan-top"><span class="loan-person">'+l.person+'</span><span class="loan-amount">'+fmtKES(l.amount)+'</span></div><div class="loan-meta">'+d+(l.purpose?' &#xB7; '+l.purpose:'')+'</div>'+(l.notes?'<div class="loan-meta">'+l.notes+'</div>':'')+'<div class="loan-actions"><button class="settle-btn" style="background:var(--blue-bg);border-color:var(--blue);color:var(--blue)" onclick="partialLoanPayment(\''+l.id+'\',\''+l.person+'\','+l.amount+')">Partial &#x1F4B8;</button><button class="settle-btn" style="margin-left:6px" onclick="settleLoan(\''+l.id+'\',\''+l.person+'\','+l.amount+')">Settled &#x2713;</button></div></div>';
+      html+='<div class="loan-item"><div class="loan-top"><span class="loan-person">'+l.person+'</span><span class="loan-amount">'+fmtKES(l.amount)+'</span></div><div class="loan-meta">'+d+(l.purpose?' &#xB7; '+l.purpose:'')+'</div>'+(l.notes?'<div class="loan-meta">'+l.notes+'</div>':'')+'<div class="loan-actions"><button class="settle-btn" style="background:var(--blue-bg);border-color:var(--blue);color:var(--blue)" onclick="partialLoanPayment(\''+l.id+'\',\''+l.person+'\','+l.amount+')">Partial <svg class="icon-svg" aria-hidden="true"><use href="#icon-expense"/></svg></button><button class="settle-btn" style="margin-left:6px" onclick="settleLoan(\''+l.id+'\',\''+l.person+'\','+l.amount+')">Settled <svg class="icon-svg" aria-hidden="true"><use href="#icon-check"/></svg></button></div></div>';
     });
     html+='</div>';
   }
@@ -1124,11 +1156,38 @@ function _pinProcess(){
 function _pinUnlock(){ document.getElementById('pin-screen').classList.add('hidden'); }
 function _pinShake(showError){ var dots=document.getElementById('pin-dots'); if(showError) for(var i=0;i<4;i++) document.getElementById('pd'+i).classList.add('error'); dots.classList.add('shake'); setTimeout(function(){ dots.classList.remove('shake'); _pinUpdateDots(); }, 500); }
 function pinReset(){ if(confirm('This will clear your PIN and you will need to set a new one. Continue?')){ localStorage.removeItem('financePin'); window._pinMode='create'; window._pinEntry=''; window._pinFirst=''; document.getElementById('pin-title').textContent='Create a 4-digit PIN'; document.getElementById('pin-reset-btn').style.display='none'; _pinUpdateDots(); } }
+
+
+var CAT_ICON_MAP = {"Groceries": "icon-cat-groceries", "Eating Out": "icon-cat-eatingout", "Food Delivery": "icon-cat-fooddelivery", "Utilities": "icon-cat-utilities", "Transport": "icon-cat-transport", "Personal Care": "icon-cat-personalcare", "Entertainment": "icon-cat-entertainment", "Salaries": "icon-cat-salaries", "Loans": "icon-cat-loans", "Charity/Gift": "icon-cat-charitygift", "Subscriptions": "icon-cat-subscriptions", "Other": "icon-cat-other"};
+function setCatValue(inputId, label){
+  var iconId = CAT_ICON_MAP[label] || "icon-cat-other";
+  selectCat(inputId, label, iconId);
+}
+function toggleCatPicker(inputId){
+  var p=document.getElementById(inputId+'-picker'); if(!p)return;
+  var open=p.classList.contains('open');
+  document.querySelectorAll('.cat-picker.open').forEach(function(el){el.classList.remove('open');});
+  if(!open) p.classList.add('open');
+}
+function selectCat(inputId,label,iconId){
+  var input=document.getElementById(inputId);
+  var lbl=document.getElementById(inputId+'-label');
+  var icn=document.getElementById(inputId+'-icon');
+  if(input)input.value=label;
+  if(lbl)lbl.textContent=label;
+  if(icn){var u=icn.querySelector('use');if(u)u.setAttribute('href','#'+iconId);}
+  var p=document.getElementById(inputId+'-picker'); if(p)p.classList.remove('open');
+  // Trigger any change listeners on the hidden input
+  if(input){var ev=new Event('change',{bubbles:true});input.dispatchEvent(ev);}
+}
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.cat-picker'))document.querySelectorAll('.cat-picker.open').forEach(function(el){el.classList.remove('open');});
+});
 </script>
 
 <div class="budget-overlay" id="budget-overlay" onclick="if(event.target===this)closeBudgetModal()">
   <div class="budget-sheet">
-    <h3>&#x1F3AF; Monthly Budgets</h3>
+    <h3><svg class="icon-svg" aria-hidden="true"><use href="#icon-budgets"/></svg> Monthly Budgets</h3>
     <div id="budget-fields"></div>
     <div class="budget-actions-row">
       <button class="budget-cancel-btn" onclick="closeBudgetModal()">Cancel</button>
