@@ -617,17 +617,25 @@ async function loadMonthSummary() {
   ]);
   var budgets = getBudgets();
   var totalExp = 0, totalInc = 0, categories = {}, byType = {Personal:0,Business:0}, byPayment = {Mpesa:0,Card:0,Cash:0};
+  var byIncomeType = {Personal:0,Business:0};
   (expenses||[]).forEach(function(e){ var a=parseFloat(e.amount); totalExp+=a; categories[e.category]=(categories[e.category]||0)+a; byType[e.type]=(byType[e.type]||0)+a; byPayment[e.payment]=(byPayment[e.payment]||0)+a; });
-  (incomeData||[]).forEach(function(i){ totalInc+=parseFloat(i.amount); });
+  (incomeData||[]).forEach(function(i){ var a=parseFloat(i.amount); totalInc+=a; var t=i.type==='Business'?'Business':'Personal'; byIncomeType[t]+=a; });
   // Build prev month category totals for trends
   var prevCats = {};
   (prevExpenses||[]).forEach(function(e){ var a=parseFloat(e.amount); prevCats[e.category]=(prevCats[e.category]||0)+a; });
   var prevTotalExp = Object.values(prevCats).reduce(function(s,v){return s+v;},0);
 
   var net = totalInc - totalExp;
+  var incSubLine = '', expSubLine = '';
+  if (totalInc > 0 && (byIncomeType.Personal > 0 || byIncomeType.Business > 0)) {
+    incSubLine = '<div style="font-size:10px;color:var(--muted);margin-top:2px;line-height:1.2">P '+fmtKES(byIncomeType.Personal).replace('KES ','')+' &#xB7; B '+fmtKES(byIncomeType.Business).replace('KES ','')+'</div>';
+  }
+  if (totalExp > 0 && currentTypeFilter === 'all') {
+    expSubLine = '<div style="font-size:10px;color:var(--muted);margin-top:2px;line-height:1.2">P '+fmtKES(byType.Personal).replace('KES ','')+' &#xB7; B '+fmtKES(byType.Business).replace('KES ','')+'</div>';
+  }
   var html = '<div class="net-row">';
-  html += '<div class="net-card"><div class="nc-amount nc-in">'+fmtKES(totalInc)+'</div><div class="nc-label">Income</div></div>';
-  html += '<div class="net-card"><div class="nc-amount nc-out">'+fmtKES(totalExp)+'</div><div class="nc-label">Expenses</div></div>';
+  html += '<div class="net-card"><div class="nc-amount nc-in">'+fmtKES(totalInc)+'</div><div class="nc-label">Income</div>'+incSubLine+'</div>';
+  html += '<div class="net-card"><div class="nc-amount nc-out">'+fmtKES(totalExp)+'</div><div class="nc-label">Expenses</div>'+expSubLine+'</div>';
   html += '<div class="net-card"><div class="nc-amount '+(net>=0?'nc-net-pos':'nc-net-neg')+'">'+fmtKES(Math.abs(net))+'</div><div class="nc-label">'+(net>=0?'&#x25B2; Net':'&#x25BC; Net')+'</div></div>';
   html += '</div>';
 
@@ -663,9 +671,15 @@ async function loadMonthSummary() {
   }
   if (currentTypeFilter === 'all' && totalExp > 0) {
     var pPct = Math.round((byType.Personal/totalExp)*100);
-    html += '<div class="card"><div class="section-title">Personal vs Business</div>';
+    html += '<div class="card"><div class="section-title">Expenses &#xB7; Personal vs Business</div>';
     html += '<div class="split-bar"><div class="split-bar-personal" style="width:'+pPct+'%"></div><div class="split-bar-business" style="width:'+(100-pPct)+'%"></div></div>';
     html += '<div class="split-legend"><span><span class="split-dot" style="background:#4A9EFF"></span>'+fmtKES(byType.Personal)+' personal</span><span><span class="split-dot" style="background:#FF6B35"></span>'+fmtKES(byType.Business)+' business</span></div></div>';
+  }
+  if (totalInc > 0 && (byIncomeType.Personal > 0 || byIncomeType.Business > 0)) {
+    var iPct = Math.round((byIncomeType.Personal/totalInc)*100);
+    html += '<div class="card"><div class="section-title">Income &#xB7; Personal vs Business</div>';
+    html += '<div class="split-bar"><div class="split-bar-personal" style="width:'+iPct+'%"></div><div class="split-bar-business" style="width:'+(100-iPct)+'%"></div></div>';
+    html += '<div class="split-legend"><span><span class="split-dot" style="background:#4A9EFF"></span>'+fmtKES(byIncomeType.Personal)+' personal</span><span><span class="split-dot" style="background:#FF6B35"></span>'+fmtKES(byIncomeType.Business)+' business</span></div></div>';
   }
   html += '<div class="card"><div class="section-title">Payment Methods</div>';
   ['Mpesa','Card','Cash'].forEach(function(m){ if(byPayment[m]>0) html+='<div class="stat-row"><span class="stat-label">'+m+'</span><span class="stat-value">'+fmtKES(byPayment[m])+'</span></div>'; });
