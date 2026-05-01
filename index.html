@@ -646,6 +646,9 @@ async function loadMonthSummary() {
   var expQ = db.from('expenses').select('*').gte('date',start).lte('date',end);
   if (currentTypeFilter === 'personal') expQ = expQ.eq('type','Personal');
   if (currentTypeFilter === 'business') expQ = expQ.eq('type','Business');
+  var incQ = db.from('income').select('*').gte('date',start).lte('date',end);
+  if (currentTypeFilter === 'personal') incQ = incQ.eq('type','Personal');
+  if (currentTypeFilter === 'business') incQ = incQ.eq('type','Business');
   // Last month range for trends
   var prevMonth = currentMonth - 1, prevYear = currentYear;
   if (prevMonth < 1) { prevMonth = 12; prevYear--; }
@@ -655,7 +658,7 @@ async function loadMonthSummary() {
 
   var [{ data: expenses }, { data: incomeData }, { data: prevExpenses }] = await Promise.all([
     expQ,
-    db.from('income').select('*').gte('date',start).lte('date',end),
+    incQ,
     db.from('expenses').select('amount,category').gte('date',prevStart).lte('date',prevEnd)
   ]);
   var budgets = getBudgets();
@@ -738,7 +741,14 @@ async function loadMonthSummary() {
     });
   } else { html += '<div class="empty">No expenses this month</div>'; }
   if ((incomeData||[]).length > 0) {
-    html += '<div class="section-title">Income This Month</div><div class="card">';
+    html += '<div class="section-title">Income This Month</div>';
+    if (currentTypeFilter === 'all' && totalInc > 0) {
+      var ipPct = Math.round((byIncomeType.Personal/totalInc)*100);
+      html += '<div class="card"><div class="section-title" style="margin-top:0">Personal vs Business</div>';
+      html += '<div class="split-bar"><div class="split-bar-personal" style="width:'+ipPct+'%"></div><div class="split-bar-business" style="width:'+(100-ipPct)+'%"></div></div>';
+      html += '<div class="split-legend"><span><span class="split-dot" style="background:#4A9EFF"></span>'+fmtKES(byIncomeType.Personal)+' personal</span><span><span class="split-dot" style="background:#FF6B35"></span>'+fmtKES(byIncomeType.Business)+' business</span></div></div>';
+    }
+    html += '<div class="card">';
     incomeData.forEach(function(i){
       var d=new Date(i.date).toLocaleDateString('en-KE',{day:'numeric',month:'short'});
       html+='<div class="stat-row"><span class="stat-label">'+i.source+' <span style="font-size:11px;color:var(--muted)">&#xB7; '+d+'</span></span><span class="stat-value" style="color:var(--blue)">'+fmtKES(i.amount)+'</span><button class="edit-btn" onclick="openEditIncome(\''+i.id+'\')">&#x270F;&#xFE0F;</button><button class="delete-btn" onclick="deleteIncome(\''+i.id+'\')">&#x1F5D1;</button></div>';
@@ -1078,7 +1088,15 @@ async function handleLogin() {
 
 async function signOut() {
   if (!confirm('Sign out of Finance?')) return;
-  await db.auth.signOut();
+  // scope:'local' guarantees the cached session in localStorage is cleared
+  // even if the server-side revoke fails (e.g. stale JWT throws
+  // AuthSessionMissingError under supabase-js v2 default global scope).
+  try { await db.auth.signOut({ scope: 'local' }); } catch (e) {}
+  document.getElementById('pin-screen').classList.add('hidden');
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-password').value = '';
+  document.getElementById('login-error').textContent = '';
 }
 
 function _showPinScreen() {
