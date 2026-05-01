@@ -1,6 +1,6 @@
 {
-  "name": "G-MONEY",
-  "short_name": "G-MONEY",
+  "name": "SidePocket",
+  "short_name": "SidePocket",
   "description": "Personal & business expense tracker",
   "start_url": "/",
   "display": "standalone",
