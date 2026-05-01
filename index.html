@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
 <title>G-MONEY</title>
 <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#0D1117">
+<meta name="theme-color" content="#0D1117" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f7f7f5" media="(prefers-color-scheme: light)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="G-MONEY">
@@ -13,7 +14,49 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-:root{--bg:#0D1117;--card:#161B22;--border:rgba(255,255,255,0.08);--green:#00C896;--blue:#4A9EFF;--orange:#FF6B35;--red:#FF4757;--purple:#BD93F9;--muted:#8B949E;--white:#E6EDF3;--radius:12px;}
+:root{
+  /* Surfaces */
+  --bg:#0D1117;
+  --card:#161B22;
+  --border:rgba(255,255,255,0.08);
+  --overlay:rgba(0,0,0,0.7);
+  /* Text */
+  --white:#E6EDF3;
+  --muted:#8B949E;
+  /* Hue accents */
+  --green:#00C896;
+  --blue:#4A9EFF;
+  --orange:#FF6B35;
+  --red:#FF4757;
+  --purple:#BD93F9;
+  /* Tinted accent backgrounds */
+  --green-bg:rgba(0,200,150,0.15);
+  --blue-bg:rgba(74,158,255,0.15);
+  --orange-bg:rgba(255,107,53,0.15);
+  --purple-bg:rgba(189,147,249,0.15);
+  /* Text colour for buttons that sit on a coloured accent fill */
+  --on-accent:#000;
+  --radius:12px;
+}
+@media (prefers-color-scheme: light) {
+  :root{
+    --bg:#f7f7f5;
+    --card:#ffffff;
+    --border:rgba(0,0,0,0.10);
+    --overlay:rgba(0,0,0,0.35);
+    --white:#1a1a1a;
+    --muted:#5b6470;
+    --green:#00A578;
+    --blue:#2B7DE9;
+    --orange:#E55A2B;
+    --red:#E03548;
+    --purple:#8E5CE0;
+    --green-bg:rgba(0,165,120,0.12);
+    --blue-bg:rgba(43,125,233,0.12);
+    --orange-bg:rgba(229,90,43,0.12);
+    --purple-bg:rgba(142,92,224,0.12);
+  }
+}
 html,body{height:100%;background:var(--bg);color:var(--white);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}
 body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;}
 .header{padding:16px 20px 8px;}
@@ -36,10 +79,10 @@ textarea{resize:none;height:72px;font-size:14px;}
 .amount-prefix input{padding-left:52px;font-size:28px;font-weight:700;text-align:right;padding-right:16px;}
 .toggle-group{display:flex;gap:8px;}
 .toggle-btn{flex:1;padding:12px 8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:14px;font-weight:600;cursor:pointer;text-align:center;transition:all 0.15s;}
-.toggle-btn.active-personal{background:rgba(74,158,255,0.15);border-color:var(--blue);color:var(--blue);}
-.toggle-btn.active-business{background:rgba(255,107,53,0.15);border-color:var(--orange);color:var(--orange);}
-.toggle-btn.active-payment{background:rgba(0,200,150,0.15);border-color:var(--green);color:var(--green);}
-.btn-primary{width:100%;padding:16px;background:var(--green);border:none;border-radius:12px;color:#000;font-size:16px;font-weight:700;cursor:pointer;margin-top:8px;}
+.toggle-btn.active-personal{background:var(--blue-bg);border-color:var(--blue);color:var(--blue);}
+.toggle-btn.active-business{background:var(--orange-bg);border-color:var(--orange);color:var(--orange);}
+.toggle-btn.active-payment{background:var(--green-bg);border-color:var(--green);color:var(--green);}
+.btn-primary{width:100%;padding:16px;background:var(--green);border:none;border-radius:12px;color:var(--on-accent);font-size:16px;font-weight:700;cursor:pointer;margin-top:8px;}
 .btn-primary.income-btn{background:var(--blue);}
 .btn-primary.loan-btn{background:var(--orange);}
 .btn-primary:disabled{opacity:0.5;cursor:not-allowed;}
@@ -65,15 +108,15 @@ textarea{resize:none;height:72px;font-size:14px;}
 .month-nav .month-label{font-size:17px;font-weight:700;}
 .type-filter{display:flex;gap:6px;margin-bottom:16px;}
 .type-filter-btn{flex:1;padding:8px 4px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;text-align:center;}
-.type-filter-btn.active{background:rgba(189,147,249,0.15);border-color:var(--purple);color:var(--purple);}
-.type-filter-btn.active-p{background:rgba(74,158,255,0.15);border-color:var(--blue);color:var(--blue);}
-.type-filter-btn.active-b{background:rgba(255,107,53,0.15);border-color:var(--orange);color:var(--orange);}
+.type-filter-btn.active{background:var(--purple-bg);border-color:var(--purple);color:var(--purple);}
+.type-filter-btn.active-p{background:var(--blue-bg);border-color:var(--blue);color:var(--blue);}
+.type-filter-btn.active-b{background:var(--orange-bg);border-color:var(--orange);color:var(--orange);}
 .expense-item{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--border);}
 .expense-item:last-child{border-bottom:none;}
 .expense-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
-.expense-icon.personal{background:rgba(74,158,255,0.15);}
-.expense-icon.business{background:rgba(255,107,53,0.15);}
-.expense-icon.income-icon{background:rgba(0,200,150,0.15);}
+.expense-icon.personal{background:var(--blue-bg);}
+.expense-icon.business{background:var(--orange-bg);}
+.expense-icon.income-icon{background:var(--green-bg);}
 .expense-body{flex:1;min-width:0;}
 .expense-desc{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .expense-meta{font-size:12px;color:var(--muted);margin-top:2px;}
@@ -88,13 +131,13 @@ textarea{resize:none;height:72px;font-size:14px;}
 .split-bar-business{background:var(--orange);}
 .split-legend{display:flex;gap:16px;font-size:12px;}
 .split-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;}
-.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--green);color:#000;padding:10px 20px;border-radius:20px;font-size:14px;font-weight:600;z-index:999;opacity:0;transition:opacity 0.3s;pointer-events:none;}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--green);color:var(--on-accent);padding:10px 20px;border-radius:20px;font-size:14px;font-weight:600;z-index:999;opacity:0;transition:opacity 0.3s;pointer-events:none;}
 .toast.show{opacity:1;}
 .section-title{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin:16px 0 8px;}
 .empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;}
 .category-card{cursor:pointer;}
 .category-card:active{opacity:0.8;}
-.drill-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;display:flex;align-items:flex-end;}
+.drill-overlay{position:fixed;inset:0;background:var(--overlay);z-index:100;display:flex;align-items:flex-end;}
 .drill-panel{background:var(--card);border-radius:var(--radius) var(--radius) 0 0;width:100%;max-height:85vh;overflow-y:auto;padding:20px;}
 .drill-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
 .drill-title{font-size:17px;font-weight:700;}
@@ -107,14 +150,14 @@ textarea{resize:none;height:72px;font-size:14px;}
 .loan-amount.settled-amt{color:var(--muted);text-decoration:line-through;}
 .loan-meta{font-size:12px;color:var(--muted);margin-top:4px;}
 .loan-actions{display:flex;gap:8px;margin-top:8px;}
-.settle-btn{padding:6px 14px;background:rgba(0,200,150,0.15);border:1px solid var(--green);border-radius:20px;color:var(--green);font-size:12px;font-weight:600;cursor:pointer;}
+.settle-btn{padding:6px 14px;background:var(--green-bg);border:1px solid var(--green);border-radius:20px;color:var(--green);font-size:12px;font-weight:600;cursor:pointer;}
 .add-type-toggle{display:flex;gap:0;margin-bottom:20px;border:1px solid var(--border);border-radius:10px;overflow:hidden;}
 .add-type-btn{flex:1;padding:12px;background:none;border:none;color:var(--muted);font-size:14px;font-weight:600;cursor:pointer;}
 .add-type-btn.active{background:var(--card);color:var(--white);}
 .month-actions{display:flex;gap:8px;justify-content:flex-end;padding:0 0 8px;}
 .month-action-btn{background:var(--card);border:1px solid var(--border);color:var(--white);font-size:11px;padding:5px 12px;border-radius:20px;cursor:pointer;}
 .month-action-btn:active{opacity:0.7;}
-.budget-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:200;display:none;align-items:center;justify-content:center;}
+.budget-overlay{position:fixed;inset:0;background:var(--overlay);z-index:200;display:none;align-items:center;justify-content:center;}
 .budget-overlay.open{display:flex;}
 .budget-sheet{background:var(--card);border-radius:var(--radius);padding:20px;width:calc(100% - 40px);max-width:400px;max-height:80vh;overflow-y:auto;}
 .budget-sheet h3{margin:0 0 14px;font-size:15px;color:var(--white);}
@@ -122,14 +165,14 @@ textarea{resize:none;height:72px;font-size:14px;}
 .budget-field label{font-size:13px;color:var(--white);}
 .budget-field input{width:110px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--white);padding:5px 8px;font-size:13px;text-align:right;}
 .budget-actions-row{display:flex;gap:10px;margin-top:14px;}
-.budget-save-btn{flex:1;background:var(--green);border:none;color:#000;font-weight:700;padding:11px;border-radius:8px;cursor:pointer;font-size:14px;}
+.budget-save-btn{flex:1;background:var(--green);border:none;color:var(--on-accent);font-weight:700;padding:11px;border-radius:8px;cursor:pointer;font-size:14px;}
 .budget-cancel-btn{flex:0 0 auto;background:none;border:1px solid var(--border);color:var(--muted);padding:11px 16px;border-radius:8px;cursor:pointer;font-size:14px;}
 #login-screen{position:fixed;inset:0;background:var(--bg);z-index:600;display:flex;align-items:center;justify-content:center;flex-direction:column;}
 #login-screen.hidden{display:none;}
 .login-input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--white);padding:14px 16px;font-size:15px;outline:none;box-sizing:border-box;-webkit-appearance:none;}
 .login-input:focus{border-color:var(--green);}
 .login-input::placeholder{color:var(--muted);}
-.login-btn{width:100%;background:var(--green);border:none;border-radius:10px;color:#000;padding:14px;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;}
+.login-btn{width:100%;background:var(--green);border:none;border-radius:10px;color:var(--on-accent);padding:14px;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;}
 .login-btn:active{opacity:0.8;}
 .login-btn:disabled{opacity:0.5;cursor:not-allowed;}
 .logout-btn{position:absolute;top:16px;right:16px;background:none;border:1px solid var(--border);color:var(--muted);font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;}
@@ -673,7 +716,7 @@ async function loadMonthSummary() {
     var pPct = Math.round((byType.Personal/totalExp)*100);
     html += '<div class="card"><div class="section-title">Expenses &#xB7; Personal vs Business</div>';
     html += '<div class="split-bar"><div class="split-bar-personal" style="width:'+pPct+'%"></div><div class="split-bar-business" style="width:'+(100-pPct)+'%"></div></div>';
-    html += '<div class="split-legend"><span><span class="split-dot" style="background:#4A9EFF"></span>'+fmtKES(byType.Personal)+' personal</span><span><span class="split-dot" style="background:#FF6B35"></span>'+fmtKES(byType.Business)+' business</span></div></div>';
+    html += '<div class="split-legend"><span><span class="split-dot" style="background:var(--blue)"></span>'+fmtKES(byType.Personal)+' personal</span><span><span class="split-dot" style="background:var(--orange)"></span>'+fmtKES(byType.Business)+' business</span></div></div>';
   }
   if (totalInc > 0 && (byIncomeType.Personal > 0 || byIncomeType.Business > 0)) {
     var iPct = Math.round((byIncomeType.Personal/totalInc)*100);
@@ -790,7 +833,7 @@ async function loadLoans() {
     html+='<div class="section-title">Outstanding</div><div class="card">';
     outstanding.forEach(function(l){
       var d=new Date(l.date).toLocaleDateString('en-KE',{day:'numeric',month:'short',year:'numeric'});
-      html+='<div class="loan-item"><div class="loan-top"><span class="loan-person">'+l.person+'</span><span class="loan-amount">'+fmtKES(l.amount)+'</span></div><div class="loan-meta">'+d+(l.purpose?' &#xB7; '+l.purpose:'')+'</div>'+(l.notes?'<div class="loan-meta">'+l.notes+'</div>':'')+'<div class="loan-actions"><button class="settle-btn" style="background:rgba(74,158,255,0.15);border-color:var(--blue);color:var(--blue)" onclick="partialLoanPayment(\''+l.id+'\',\''+l.person+'\','+l.amount+')">Partial &#x1F4B8;</button><button class="settle-btn" style="margin-left:6px" onclick="settleLoan(\''+l.id+'\',\''+l.person+'\','+l.amount+')">Settled &#x2713;</button></div></div>';
+      html+='<div class="loan-item"><div class="loan-top"><span class="loan-person">'+l.person+'</span><span class="loan-amount">'+fmtKES(l.amount)+'</span></div><div class="loan-meta">'+d+(l.purpose?' &#xB7; '+l.purpose:'')+'</div>'+(l.notes?'<div class="loan-meta">'+l.notes+'</div>':'')+'<div class="loan-actions"><button class="settle-btn" style="background:var(--blue-bg);border-color:var(--blue);color:var(--blue)" onclick="partialLoanPayment(\''+l.id+'\',\''+l.person+'\','+l.amount+')">Partial &#x1F4B8;</button><button class="settle-btn" style="margin-left:6px" onclick="settleLoan(\''+l.id+'\',\''+l.person+'\','+l.amount+')">Settled &#x2713;</button></div></div>';
     });
     html+='</div>';
   }
@@ -858,7 +901,7 @@ async function loadDebts() {
     } else {
       html += '<div class="loan-meta" style="color:var(--green)">Cleared 🎉</div>';
     }
-    html += '<div class="loan-actions"><button class="settle-btn" style="border-color:var(--blue);color:var(--blue);background:rgba(74,158,255,0.1)" onclick="editDebtCard(' + c.id + ',\'' + c.name.replace(/'/g,"\\'") + '\',' + bal + ',\'' + c.currency + '\')">Update Balance</button>';
+    html += '<div class="loan-actions"><button class="settle-btn" style="border-color:var(--blue);color:var(--blue);background:var(--blue-bg)" onclick="editDebtCard(' + c.id + ',\'' + c.name.replace(/'/g,"\\'") + '\',' + bal + ',\'' + c.currency + '\')">Update Balance</button>';
     if (!cleared) html += '<button class="settle-btn" style="margin-left:4px" onclick="clearDebtCard(' + c.id + ',\'' + c.name.replace(/'/g,"\\'") + '\')">Mark Cleared</button>';
     html += '</div></div>';
   });
