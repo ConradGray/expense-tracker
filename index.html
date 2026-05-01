@@ -798,7 +798,7 @@ async function drillCategory(cat) {
   if (currentTypeFilter==='personal') q=q.eq('type','Personal');
   if (currentTypeFilter==='business') q=q.eq('type','Business');
   var { data } = await q;
-  document.getElementById('drill-title').textContent = (CAT_ICONS[cat]||'<svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-other"/></svg>')+' '+cat;
+  document.getElementById('drill-title').innerHTML = (CAT_ICONS[cat]||'<svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-other"/></svg>')+' '+cat;
   var html = !data||data.length===0 ? '<div class="empty">No transactions</div>' : '<div class="card">';
   if (data&&data.length>0) {
     data.forEach(function(e){
