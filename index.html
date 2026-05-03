@@ -75,7 +75,7 @@ input,select,textarea{width:100%;background:var(--bg);border:1px solid var(--bor
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--green);}
 textarea{resize:none;height:72px;font-size:14px;}
 .amount-prefix{position:relative;}
-.amount-prefix::before{content:'KES';position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;font-weight:600;pointer-events:none;}
+.amount-prefix .currency-label{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;font-weight:600;pointer-events:none;letter-spacing:0.5px;}
 .amount-prefix input{padding-left:52px;font-size:28px;font-weight:700;text-align:right;padding-right:16px;}
 .toggle-group{display:flex;gap:8px;}
 .toggle-btn{flex:1;padding:12px 8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:14px;font-weight:600;cursor:pointer;text-align:center;transition:all 0.15s;}
@@ -221,6 +221,14 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans
 .cat-picker-row{width:100%;background:none;border:none;color:var(--white);padding:10px 10px;border-radius:6px;font-size:15px;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:10px;text-align:left;}
 .cat-picker-row:hover{background:var(--bg);}
 .cat-picker-trigger .cat-icon-svg,.cat-picker-row .cat-icon-svg{margin:0;flex-shrink:0;}
+
+.settings-btn{position:absolute;top:16px;right:84px;background:none;border:1px solid var(--border);color:var(--muted);font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;}
+.settings-btn:active{color:var(--green);border-color:var(--green);}
+.settings-btn .icon-svg{width:13px;height:13px;}
+.settings-form{display:flex;flex-direction:column;gap:14px;margin-top:8px;}
+.settings-form label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px;font-weight:500;}
+.settings-form select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--white);padding:12px;font-size:16px;font-family:inherit;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%237a7a8a' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;}
+.settings-hint{font-size:12px;color:var(--muted);line-height:1.5;margin-top:-6px;}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -254,13 +262,13 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans
 <symbol id="icon-export" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 L12 16"/><polyline points="7,11 12,16 17,11"/><path d="M3 17 L3 20 Q3 21 4 21 L20 21 Q21 21 21 20 L21 17"/></symbol>
 <symbol id="icon-budgets" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/></symbol>
 <symbol id="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="4,12 10,18 20,6"/></symbol>
-<symbol id="icon-chevron-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6,9 12,15 18,9"/></symbol>
+<symbol id="icon-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol><symbol id="icon-chevron-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6,9 12,15 18,9"/></symbol>
 </defs>
 </svg>
 <div class="header" style="position:relative">
   <h1 style="display:flex;align-items:center;gap:8px;"><svg width="22" height="22" viewBox="0 0 200 200" style="flex-shrink:0" aria-hidden="true"><g transform="translate(100, 100)" fill="none" stroke="currentColor" stroke-width="16" stroke-linejoin="round" stroke-linecap="round"><path d="M -60 -44 L -60 24 Q -60 44 -40 44 L -9 44 Q 0 44 0 35 Q 0 44 9 44 L 40 44 Q 60 44 60 24 L 60 -44 Z"/><line x1="0" y1="-44" x2="0" y2="34"/></g><circle cx="70" cy="115" r="7" fill="#10b981"/><circle cx="130" cy="115" r="7" fill="#f59e0b"/></svg><span>Side<span style="font-weight:400">Pocket</span></span></h1>
   <p id="header-date"></p>
-  <button class="logout-btn" onclick="signOut()" title="Sign out">Sign out</button>
+  <button class="settings-btn" onclick="openSettings()" title="Settings" aria-label="Settings"><svg class="icon-svg" aria-hidden="true"><use href="#icon-settings"/></svg>Settings</button><button class="logout-btn" onclick="signOut()" title="Sign out">Sign out</button>
 </div>
 
 <div id="tab-add" class="tab-content active">
@@ -270,7 +278,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans
     <button class="add-type-btn" id="add-type-loan" onclick="switchAddType('loan')"><svg class="icon-svg" aria-hidden="true"><use href="#icon-loan"/></svg> Loan</button>
   </div>
   <div id="form-expense">
-    <div class="form-group"><label>Amount</label><div class="amount-prefix"><input type="number" id="f-amount" placeholder="0" min="0" step="1"/></div></div>
+    <div class="form-group"><label>Amount</label><div class="amount-prefix"><span class="currency-label">KES</span><input type="number" id="f-amount" placeholder="0" min="0" step="1"/></div></div>
     <div class="form-group"><label>Description</label><input type="text" id="f-desc" placeholder="What was it for?" /></div>
     <div class="form-group"><label>Category</label>
       <div class="cat-picker" id="f-category-picker"><button type="button" class="cat-picker-trigger" onclick="toggleCatPicker('f-category')"><span class="cat-picker-display"><svg class="cat-icon-svg" id="f-category-icon" aria-hidden="true"><use href="#icon-cat-groceries"/></svg><span id="f-category-label">Groceries</span></span><svg class="cat-picker-chevron" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button><input type="hidden" id="f-category" value="Groceries"/><div class="cat-picker-menu" id="f-category-menu"><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Groceries','icon-cat-groceries')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-groceries"/></svg><span>Groceries</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Eating Out','icon-cat-eatingout')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-eatingout"/></svg><span>Eating Out</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Food Delivery','icon-cat-fooddelivery')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-fooddelivery"/></svg><span>Food Delivery</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Utilities','icon-cat-utilities')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-utilities"/></svg><span>Utilities</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Transport','icon-cat-transport')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-transport"/></svg><span>Transport</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Personal Care','icon-cat-personalcare')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-personalcare"/></svg><span>Personal Care</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Entertainment','icon-cat-entertainment')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-entertainment"/></svg><span>Entertainment</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Salaries','icon-cat-salaries')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-salaries"/></svg><span>Salaries</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Loans','icon-cat-loans')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-loans"/></svg><span>Loans</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Charity/Gift','icon-cat-charitygift')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-charitygift"/></svg><span>Charity/Gift</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Subscriptions','icon-cat-subscriptions')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-subscriptions"/></svg><span>Subscriptions</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Other','icon-cat-other')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-other"/></svg><span>Other</span></button></div></div>
@@ -294,7 +302,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans
     <button class="btn-primary" id="submit-expense-btn" onclick="submitExpense()">Log Expense</button>
   </div>
   <div id="form-income" style="display:none">
-    <div class="form-group"><label>Amount</label><div class="amount-prefix"><input type="number" id="i-amount" placeholder="0" min="0" step="1"/></div></div>
+    <div class="form-group"><label>Amount</label><div class="amount-prefix"><span class="currency-label">KES</span><input type="number" id="i-amount" placeholder="0" min="0" step="1"/></div></div>
     <div class="form-group"><label>Source</label><input type="text" id="i-source" placeholder="e.g. DJ Gig, Studio Booking, Salary..." /></div>
     <div class="form-group"><label>Type</label>
       <div class="toggle-group" id="income-type-group">
@@ -307,7 +315,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans
     <button class="btn-primary income-btn" id="submit-income-btn" onclick="submitIncome()">Log Income</button>
   </div>
   <div id="form-loan" style="display:none">
-    <div class="form-group"><label>Amount</label><div class="amount-prefix"><input type="number" id="l-amount" placeholder="0" min="0" step="1"/></div></div>
+    <div class="form-group"><label>Amount</label><div class="amount-prefix"><span class="currency-label">KES</span><input type="number" id="l-amount" placeholder="0" min="0" step="1"/></div></div>
     <div class="form-group"><label>Person</label><input type="text" id="l-person" placeholder="Who did you lend to?" /></div>
     <div class="form-group"><label>Purpose</label><input type="text" id="l-purpose" placeholder="What's it for?" /></div>
     <div class="form-group"><label>Date</label><input type="date" id="l-date" /></div>
@@ -374,7 +382,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans
     </div>
     <!-- Edit Expense form -->
     <div id="edit-form-expense">
-      <div class="form-group"><label>Amount</label><div class="amount-prefix"><input type="number" id="e-amount" placeholder="0" min="0" step="1"/></div></div>
+      <div class="form-group"><label>Amount</label><div class="amount-prefix"><span class="currency-label">KES</span><input type="number" id="e-amount" placeholder="0" min="0" step="1"/></div></div>
       <div class="form-group"><label>Description</label><input type="text" id="e-desc" placeholder="What was it for?" /></div>
       <div class="form-group"><label>Category</label>
         <div class="cat-picker" id="e-category-picker"><button type="button" class="cat-picker-trigger" onclick="toggleCatPicker('e-category')"><span class="cat-picker-display"><svg class="cat-icon-svg" id="e-category-icon" aria-hidden="true"><use href="#icon-cat-groceries"/></svg><span id="e-category-label">Groceries</span></span><svg class="cat-picker-chevron" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button><input type="hidden" id="e-category" value="Groceries"/><div class="cat-picker-menu" id="e-category-menu"><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Groceries','icon-cat-groceries')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-groceries"/></svg><span>Groceries</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Eating Out','icon-cat-eatingout')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-eatingout"/></svg><span>Eating Out</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Food Delivery','icon-cat-fooddelivery')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-fooddelivery"/></svg><span>Food Delivery</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Utilities','icon-cat-utilities')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-utilities"/></svg><span>Utilities</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Transport','icon-cat-transport')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-transport"/></svg><span>Transport</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Personal Care','icon-cat-personalcare')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-personalcare"/></svg><span>Personal Care</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Entertainment','icon-cat-entertainment')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-entertainment"/></svg><span>Entertainment</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Salaries','icon-cat-salaries')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-salaries"/></svg><span>Salaries</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Loans','icon-cat-loans')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-loans"/></svg><span>Loans</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Charity/Gift','icon-cat-charitygift')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-charitygift"/></svg><span>Charity/Gift</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Subscriptions','icon-cat-subscriptions')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-subscriptions"/></svg><span>Subscriptions</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Other','icon-cat-other')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-other"/></svg><span>Other</span></button></div></div>
@@ -399,7 +407,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans
     </div>
     <!-- Edit Income form -->
     <div id="edit-form-income" style="display:none">
-      <div class="form-group"><label>Amount</label><div class="amount-prefix"><input type="number" id="ei-amount" placeholder="0" min="0" step="1"/></div></div>
+      <div class="form-group"><label>Amount</label><div class="amount-prefix"><span class="currency-label">KES</span><input type="number" id="ei-amount" placeholder="0" min="0" step="1"/></div></div>
       <div class="form-group"><label>Source</label><input type="text" id="ei-source" placeholder="e.g. DJ Gig, Studio Booking..." /></div>
       <div class="form-group"><label>Type</label>
         <div class="toggle-group" id="ei-type-group">
@@ -613,7 +621,108 @@ function showToast(msg, color) {
   setTimeout(function(){ t.classList.remove('show'); }, 2500);
 }
 
-function fmtKES(n) { return 'KES ' + Math.round(n).toLocaleString(); }
+var currentSettings = { currency: 'KES', locale: 'en-KE' };
+function _resolveLocale(){
+  if (!currentSettings) return 'en-KE';
+  if (currentSettings.locale && currentSettings.locale !== 'auto') return currentSettings.locale;
+  return navigator.language || 'en-KE';
+}
+function fmtMoney(n){
+  var locale = _resolveLocale();
+  try {
+    return new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency: currentSettings.currency || 'KES',
+      maximumFractionDigits: 0,
+      currencyDisplay: 'code'
+    }).format(Math.round(n));
+  } catch(e){
+    return (currentSettings.currency || 'KES') + ' ' + Math.round(n).toLocaleString(locale);
+  }
+}
+function fmtNumber(n){
+  var locale = _resolveLocale();
+  try { return Math.round(n).toLocaleString(locale); }
+  catch(e){ return Math.round(n).toLocaleString(); }
+}
+// Backwards-compat alias — existing call sites still work
+function fmtKES(n){ return fmtMoney(n); }
+function detectDefaults(){
+  var lang = navigator.language || 'en-KE';
+  var country = (lang.split('-')[1] || '').toUpperCase();
+  var map = {
+    KE:['KES','en-KE'], US:['USD','en-US'], GB:['GBP','en-GB'], IE:['EUR','en-IE'],
+    NL:['EUR','nl-NL'], DE:['EUR','de-DE'], FR:['EUR','fr-FR'], IT:['EUR','it-IT'],
+    ES:['EUR','es-ES'], PT:['EUR','pt-PT'], BE:['EUR','nl-BE'], AT:['EUR','de-AT'],
+    FI:['EUR','fi-FI'], GR:['EUR','el-GR'], NG:['NGN','en-NG'], ZA:['ZAR','en-ZA'],
+    IN:['INR','en-IN'], AU:['AUD','en-AU'], CA:['CAD','en-CA'], JP:['JPY','ja-JP'],
+    CN:['CNY','zh-CN'], CH:['CHF','de-CH'], NZ:['NZD','en-NZ'], BR:['BRL','pt-BR'],
+    MX:['MXN','es-MX']
+  };
+  var entry = map[country] || map.KE;
+  return { currency: entry[0], locale: entry[1] };
+}
+
+async function loadUserSettings(){
+  if (!currentUserId) return;
+  try {
+    var { data, error } = await db.from('user_settings').select('*').eq('user_id', currentUserId).maybeSingle();
+    if (error) console.warn('settings load error:', error);
+    if (!data) {
+      var defaults = detectDefaults();
+      var insertResult = await db.from('user_settings').insert({
+        user_id: currentUserId,
+        currency: defaults.currency,
+        locale: defaults.locale
+      }).select().single();
+      data = insertResult.data;
+    }
+    if (data) {
+      currentSettings = { currency: data.currency, locale: data.locale };
+    }
+  } catch(e){ console.warn('loadUserSettings failed:', e); }
+  applyCurrencyToUI();
+}
+
+function applyCurrencyToUI(){
+  document.querySelectorAll('.currency-label').forEach(function(el){
+    el.textContent = currentSettings.currency || 'KES';
+  });
+}
+
+function openSettings(){
+  document.getElementById('settings-currency').value = currentSettings.currency || 'KES';
+  document.getElementById('settings-locale').value = currentSettings.locale || 'auto';
+  document.getElementById('settings-overlay').style.display = 'flex';
+}
+function closeSettings(e){
+  if (e && e.target.id !== 'settings-overlay' && !e.target.classList.contains('drill-close')) return;
+  document.getElementById('settings-overlay').style.display = 'none';
+}
+async function saveSettings(){
+  var btn = document.getElementById('settings-save-btn');
+  var newCurrency = document.getElementById('settings-currency').value;
+  var newLocale = document.getElementById('settings-locale').value;
+  btn.disabled = true; btn.textContent = 'Saving...';
+  try {
+    await db.from('user_settings').update({
+      currency: newCurrency,
+      locale: newLocale
+    }).eq('user_id', currentUserId);
+    currentSettings = { currency: newCurrency, locale: newLocale };
+    applyCurrencyToUI();
+    showToast('Settings saved');
+    closeSettings({ target: { id: 'settings-overlay' } });
+    // Refresh visible content so amounts re-format
+    if (typeof loadMonthSummary === 'function') loadMonthSummary();
+    if (typeof loadRecent === 'function') loadRecent();
+  } catch(e){
+    showToast('Could not save: ' + e.message, 'var(--red)');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Save';
+  }
+}
+
 
 async function submitExpense() {
   var amount = document.getElementById('f-amount').value, desc = document.getElementById('f-desc').value.trim();
@@ -708,10 +817,10 @@ async function loadMonthSummary() {
   var net = totalInc - totalExp;
   var incSubLine = '', expSubLine = '';
   if (totalInc > 0 && (byIncomeType.Personal > 0 || byIncomeType.Business > 0)) {
-    incSubLine = '<div style="font-size:10px;color:var(--muted);margin-top:2px;line-height:1.2">P '+fmtKES(byIncomeType.Personal).replace('KES ','')+' &#xB7; B '+fmtKES(byIncomeType.Business).replace('KES ','')+'</div>';
+    incSubLine = '<div style="font-size:10px;color:var(--muted);margin-top:2px;line-height:1.2">P '+fmtNumber(byIncomeType.Personal)+' &#xB7; B '+fmtNumber(byIncomeType.Business)+'</div>';
   }
   if (totalExp > 0 && currentTypeFilter === 'all') {
-    expSubLine = '<div style="font-size:10px;color:var(--muted);margin-top:2px;line-height:1.2">P '+fmtKES(byType.Personal).replace('KES ','')+' &#xB7; B '+fmtKES(byType.Business).replace('KES ','')+'</div>';
+    expSubLine = '<div style="font-size:10px;color:var(--muted);margin-top:2px;line-height:1.2">P '+fmtNumber(byType.Personal)+' &#xB7; B '+fmtNumber(byType.Business)+'</div>';
   }
   var html = '<div class="net-row">';
   html += '<div class="net-card"><div class="nc-amount nc-in">'+fmtKES(totalInc)+'</div><div class="nc-label">Income</div>'+incSubLine+'</div>';
@@ -1089,6 +1198,7 @@ async function exportCSV(){
 async function initAuth() {
   var { data: { session } } = await db.auth.getSession();
   currentUserId = session?.user?.id || null;
+  if (currentUserId) await loadUserSettings();
   if (session) {
     _showPinScreen();
   } else {
@@ -1161,6 +1271,7 @@ async function handleLogin() {
     btn.disabled = false; btn.textContent = 'Sign In';
   } else {
     currentUserId = signInData?.user?.id || null;
+    if (currentUserId) await loadUserSettings();
     document.getElementById('login-screen').classList.add('hidden');
     btn.disabled = false; btn.textContent = 'Sign In';
     _showPinScreen();
@@ -1260,6 +1371,59 @@ document.addEventListener('click',function(e){
   </div>
 </div>
 
+
+<div class="drill-overlay" id="settings-overlay" style="display:none" onclick="closeSettings(event)">
+  <div class="drill-panel" id="settings-panel">
+    <div class="drill-header">
+      <span class="drill-title">Settings</span>
+      <button class="drill-close" onclick="closeSettings()">&#10005;</button>
+    </div>
+    <div class="settings-form">
+      <div>
+        <label for="settings-currency">Currency</label>
+        <select id="settings-currency">
+          <option value="KES">KES — Kenyan Shilling</option>
+          <option value="USD">USD — US Dollar</option>
+          <option value="EUR">EUR — Euro</option>
+          <option value="GBP">GBP — British Pound</option>
+          <option value="NGN">NGN — Nigerian Naira</option>
+          <option value="ZAR">ZAR — South African Rand</option>
+          <option value="INR">INR — Indian Rupee</option>
+          <option value="AUD">AUD — Australian Dollar</option>
+          <option value="CAD">CAD — Canadian Dollar</option>
+          <option value="JPY">JPY — Japanese Yen</option>
+          <option value="CHF">CHF — Swiss Franc</option>
+          <option value="NZD">NZD — New Zealand Dollar</option>
+          <option value="BRL">BRL — Brazilian Real</option>
+          <option value="MXN">MXN — Mexican Peso</option>
+          <option value="CNY">CNY — Chinese Yuan</option>
+        </select>
+      </div>
+      <div>
+        <label for="settings-locale">Number formatting</label>
+        <select id="settings-locale">
+          <option value="auto">Match my browser</option>
+          <option value="en-KE">English (Kenya) — 1,234</option>
+          <option value="en-US">English (US) — 1,234</option>
+          <option value="en-GB">English (UK) — 1,234</option>
+          <option value="en-IE">English (Ireland) — 1,234</option>
+          <option value="nl-NL">Dutch (Netherlands) — 1.234</option>
+          <option value="de-DE">German (Germany) — 1.234</option>
+          <option value="fr-FR">French (France) — 1 234</option>
+          <option value="es-ES">Spanish (Spain) — 1.234</option>
+          <option value="pt-PT">Portuguese (Portugal) — 1234</option>
+          <option value="en-ZA">English (South Africa) — 1 234</option>
+          <option value="en-IN">English (India) — 1,234</option>
+          <option value="en-AU">English (Australia) — 1,234</option>
+          <option value="en-CA">English (Canada) — 1,234</option>
+          <option value="ja-JP">Japanese — 1,234</option>
+        </select>
+        <div class="settings-hint">Affects how numbers are grouped and the currency symbol position.</div>
+      </div>
+      <button class="btn-primary" id="settings-save-btn" onclick="saveSettings()">Save</button>
+    </div>
+  </div>
+</div>
 <div id="pin-screen" class="hidden">
   <div class="pin-content">
     <svg class="pin-mark" width="56" height="56" viewBox="0 0 200 200" style="margin-bottom:16px" aria-hidden="true"><g transform="translate(100, 100)" fill="none" stroke="currentColor" stroke-width="14" stroke-linejoin="round" stroke-linecap="round"><path d="M -60 -44 L -60 24 Q -60 44 -40 44 L -9 44 Q 0 44 0 35 Q 0 44 9 44 L 40 44 Q 60 44 60 24 L 60 -44 Z"/><line x1="0" y1="-44" x2="0" y2="34"/></g><circle cx="70" cy="115" r="7" fill="#10b981"/><circle cx="130" cy="115" r="7" fill="#f59e0b"/></svg>
