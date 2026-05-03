@@ -424,6 +424,7 @@ const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 var selectedType = 'Personal', selectedPayment = 'Mpesa', selectedIncomeType = 'Personal';
 var currentMonth, currentYear, currentTypeFilter = 'all';
+var currentUserId = null;
 var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 var CAT_ICONS = {
   'Groceries':'<svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-groceries"/></svg>',
@@ -622,7 +623,7 @@ async function submitExpense() {
   if (!desc) { showToast('Add a description','var(--red)'); return; }
   var btn = document.getElementById('submit-expense-btn');
   btn.disabled = true; btn.textContent = 'Saving...';
-  var { error } = await db.from('expenses').insert({ date, amount: parseFloat(amount), description: desc, category, type: selectedType, payment: selectedPayment, notes });
+  var { error } = await db.from('expenses').insert({ user_id: currentUserId, date, amount: parseFloat(amount), description: desc, category, type: selectedType, payment: selectedPayment, notes });
   btn.disabled = false; btn.textContent = 'Log Expense';
   if (error) { showToast('Error: ' + error.message,'var(--red)'); return; }
   showToast('Expense logged');
@@ -636,7 +637,7 @@ async function submitIncome() {
   if (!source) { showToast('Add a source','var(--red)'); return; }
   var btn = document.getElementById('submit-income-btn');
   btn.disabled = true; btn.textContent = 'Saving...';
-  var { error } = await db.from('income').insert({ date, amount: parseFloat(amount), source, notes, type: selectedIncomeType });
+  var { error } = await db.from('income').insert({ user_id: currentUserId, date, amount: parseFloat(amount), source, notes, type: selectedIncomeType });
   btn.disabled = false; btn.textContent = 'Log Income';
   if (error) { showToast('Error: ' + error.message,'var(--red)'); return; }
   showToast('Income logged');
@@ -656,8 +657,8 @@ async function submitLoan() {
   if (!person) { showToast('Add a person','var(--red)'); return; }
   var btn = document.getElementById('submit-loan-btn');
   btn.disabled = true; btn.textContent = 'Saving...';
-  await db.from('loans').insert({ date, amount: parseFloat(amount), person, purpose, notes, status: 'outstanding' });
-  await db.from('expenses').insert({ date, amount: parseFloat(amount), description: 'Loan to ' + person + (purpose ? ' - ' + purpose : ''), category: 'Loans', type: 'Business', payment: selectedPayment, notes });
+  await db.from('loans').insert({ user_id: currentUserId, date, amount: parseFloat(amount), person, purpose, notes, status: 'outstanding' });
+  await db.from('expenses').insert({ user_id: currentUserId, date, amount: parseFloat(amount), description: 'Loan to ' + person + (purpose ? ' - ' + purpose : ''), category: 'Loans', type: 'Business', payment: selectedPayment, notes });
   btn.disabled = false; btn.textContent = 'Log Loan';
   showToast('Loan logged');
   ['l-amount','l-person','l-purpose','l-notes'].forEach(function(id){ document.getElementById(id).value = ''; });
@@ -998,12 +999,12 @@ async function partialLoanPayment(id, person, outstanding) {
   if (remaining <= 0) {
     // Fully paid via partial payment flow
     await db.from('loans').update({ status: 'settled', settled_date: today, amount: 0 }).eq('id', id);
-    await db.from('income').insert({ date: today, amount: payment, source: 'Loan Repayment - ' + person, notes: 'Final payment — loan settled' });
+    await db.from('income').insert({ user_id: currentUserId, date: today, amount: payment, source: 'Loan Repayment - ' + person, notes: 'Final payment — loan settled' });
     showToast('Fully settled — income logged');
   } else {
     // Reduce outstanding balance
     await db.from('loans').update({ amount: remaining }).eq('id', id);
-    await db.from('income').insert({ date: today, amount: payment, source: 'Loan Repayment - ' + person, notes: 'Partial repayment. Remaining: ' + fmtKES(remaining) });
+    await db.from('income').insert({ user_id: currentUserId, date: today, amount: payment, source: 'Loan Repayment - ' + person, notes: 'Partial repayment. Remaining: ' + fmtKES(remaining) });
     showToast(fmtKES(payment) + ' received. ' + fmtKES(remaining) + ' still owed.');
   }
   loadLoans();
@@ -1013,7 +1014,7 @@ async function settleLoan(id, person, amount) {
   if (!confirm('Mark loan from '+person+' as settled in full?')) return;
   var today = new Date().toISOString().split('T')[0];
   await db.from('loans').update({status:'settled',settled_date:today}).eq('id',id);
-  await db.from('income').insert({date:today,amount:parseFloat(amount),source:'Loan Repayment - '+person,notes:'Settled loan'});
+  await db.from('income').insert({user_id: currentUserId, date:today,amount:parseFloat(amount),source:'Loan Repayment - '+person,notes:'Settled loan'});
   showToast('Settled - income logged');
   loadLoans();
 }
@@ -1087,12 +1088,14 @@ async function exportCSV(){
 // ── Supabase Auth ──────────────────────────────────────────────────────────────
 async function initAuth() {
   var { data: { session } } = await db.auth.getSession();
+  currentUserId = session?.user?.id || null;
   if (session) {
     _showPinScreen();
   } else {
     document.getElementById('login-screen').classList.remove('hidden');
   }
   db.auth.onAuthStateChange(function(event, session) {
+    currentUserId = session?.user?.id || null;
     if (event === 'SIGNED_OUT') {
       document.getElementById('pin-screen').classList.add('hidden');
       document.getElementById('login-screen').classList.remove('hidden');
@@ -1152,11 +1155,12 @@ async function handleLogin() {
   }
 
   btn.disabled = true; btn.textContent = 'Signing in…';
-  var { error } = await db.auth.signInWithPassword({ email: email, password: password });
+  var { data: signInData, error } = await db.auth.signInWithPassword({ email: email, password: password });
   if (error) {
     errEl.textContent = error.message === 'Invalid login credentials' ? 'Incorrect email or password' : error.message;
     btn.disabled = false; btn.textContent = 'Sign In';
   } else {
+    currentUserId = signInData?.user?.id || null;
     document.getElementById('login-screen').classList.add('hidden');
     btn.disabled = false; btn.textContent = 'Sign In';
     _showPinScreen();
