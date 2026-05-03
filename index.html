@@ -229,6 +229,39 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans
 .settings-form label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px;font-weight:500;}
 .settings-form select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--white);padding:12px;font-size:16px;font-family:inherit;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%237a7a8a' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;}
 .settings-hint{font-size:12px;color:var(--muted);line-height:1.5;margin-top:-6px;}
+
+/* Payment methods toggle group can wrap to multiple rows */
+.toggle-group-wrap{flex-wrap:wrap;}
+.toggle-group-wrap .toggle-btn{flex:1 1 calc(33.333% - 8px);min-width:80px;}
+
+/* Payment methods management (in Settings modal) */
+.pm-list{display:flex;flex-direction:column;gap:6px;margin-top:8px;}
+.pm-row{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;}
+.pm-row-label{flex:1;color:var(--white);font-size:15px;}
+.pm-row-actions{display:flex;gap:6px;}
+.pm-row-actions button{background:none;border:none;color:var(--muted);cursor:pointer;padding:4px;font-family:inherit;}
+.pm-row-actions button:hover{color:var(--white);}
+.pm-row-actions .icon-svg{width:16px;height:16px;}
+.pm-add{display:flex;gap:8px;margin-top:10px;}
+.pm-add input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--white);padding:10px 12px;font-size:15px;font-family:inherit;}
+.pm-add button{background:var(--green);border:none;color:var(--on-accent);padding:10px 16px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;}
+.pm-empty{font-size:13px;color:var(--muted);text-align:center;padding:12px;}
+
+/* Desktop layout — widen on big screens */
+@media (min-width: 900px) {
+  body{max-width:760px;}
+  .bottom-nav{max-width:760px;}
+  .header{padding:24px 28px 8px;}
+  .header h1{font-size:24px;}
+  .tab-content{padding:20px 28px 100px;}
+  .net-row{gap:14px;}
+  .nc-amount{font-size:22px;}
+  .toggle-group-wrap .toggle-btn{flex:1 1 calc(20% - 8px);}
+}
+@media (min-width: 1200px) {
+  body{max-width:880px;}
+  .bottom-nav{max-width:880px;}
+}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -281,7 +314,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans
     <div class="form-group"><label>Amount</label><div class="amount-prefix"><span class="currency-label">KES</span><input type="number" id="f-amount" placeholder="0" min="0" step="1"/></div></div>
     <div class="form-group"><label>Description</label><input type="text" id="f-desc" placeholder="What was it for?" /></div>
     <div class="form-group"><label>Category</label>
-      <div class="cat-picker" id="f-category-picker"><button type="button" class="cat-picker-trigger" onclick="toggleCatPicker('f-category')"><span class="cat-picker-display"><svg class="cat-icon-svg" id="f-category-icon" aria-hidden="true"><use href="#icon-cat-groceries"/></svg><span id="f-category-label">Groceries</span></span><svg class="cat-picker-chevron" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button><input type="hidden" id="f-category" value="Groceries"/><div class="cat-picker-menu" id="f-category-menu"><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Groceries','icon-cat-groceries')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-groceries"/></svg><span>Groceries</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Eating Out','icon-cat-eatingout')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-eatingout"/></svg><span>Eating Out</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Food Delivery','icon-cat-fooddelivery')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-fooddelivery"/></svg><span>Food Delivery</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Utilities','icon-cat-utilities')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-utilities"/></svg><span>Utilities</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Transport','icon-cat-transport')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-transport"/></svg><span>Transport</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Personal Care','icon-cat-personalcare')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-personalcare"/></svg><span>Personal Care</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Entertainment','icon-cat-entertainment')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-entertainment"/></svg><span>Entertainment</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Salaries','icon-cat-salaries')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-salaries"/></svg><span>Salaries</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Loans','icon-cat-loans')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-loans"/></svg><span>Loans</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Charity/Gift','icon-cat-charitygift')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-charitygift"/></svg><span>Charity/Gift</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Subscriptions','icon-cat-subscriptions')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-subscriptions"/></svg><span>Subscriptions</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Other','icon-cat-other')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-other"/></svg><span>Other</span></button></div></div>
+      <div class="cat-picker" id="f-category-picker"><button type="button" class="cat-picker-trigger" onclick="toggleCatPicker('f-category')"><span class="cat-picker-display"><svg class="cat-icon-svg" id="f-category-icon" aria-hidden="true"><use href="#icon-cat-groceries"/></svg><span id="f-category-label">Groceries</span></span><svg class="cat-picker-chevron" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button><input type="hidden" id="f-category" value="Groceries"/><div class="cat-picker-menu" id="f-category-menu"><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Charity/Gift','icon-cat-charitygift')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-charitygift"/></svg><span>Charity/Gift</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Eating Out','icon-cat-eatingout')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-eatingout"/></svg><span>Eating Out</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Entertainment','icon-cat-entertainment')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-entertainment"/></svg><span>Entertainment</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Food Delivery','icon-cat-fooddelivery')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-fooddelivery"/></svg><span>Food Delivery</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Groceries','icon-cat-groceries')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-groceries"/></svg><span>Groceries</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Loans','icon-cat-loans')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-loans"/></svg><span>Loans</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Personal Care','icon-cat-personalcare')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-personalcare"/></svg><span>Personal Care</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Salaries','icon-cat-salaries')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-salaries"/></svg><span>Salaries</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Subscriptions','icon-cat-subscriptions')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-subscriptions"/></svg><span>Subscriptions</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Transport','icon-cat-transport')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-transport"/></svg><span>Transport</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Utilities','icon-cat-utilities')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-utilities"/></svg><span>Utilities</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Other','icon-cat-other')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-other"/></svg><span>Other</span></button></div></div>
     </div>
     <div class="form-group"><label>Type</label>
       <div class="toggle-group" id="type-group">
@@ -290,12 +323,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans
       </div>
     </div>
     <div class="form-group"><label>Payment Method</label>
-      <div class="toggle-group" id="payment-group">
-        <button class="toggle-btn active-payment" data-val="Mpesa" onclick="selectPayment('Mpesa')">Mpesa</button>
-        <button class="toggle-btn" data-val="Card" onclick="selectPayment('Card')">Card</button>
-        <button class="toggle-btn" data-val="Cash" onclick="selectPayment('Cash')">Cash</button>
-        <button class="toggle-btn" data-val="Revolut" onclick="selectPayment('Revolut')">Revolut</button>
-      </div>
+      <div class="toggle-group toggle-group-wrap" id="payment-group"></div>
     </div>
     <div class="form-group"><label>Date</label><input type="date" id="f-date" /></div>
     <div class="form-group"><label>Notes (optional)</label><textarea id="f-notes" placeholder="Any extra details..."></textarea></div>
@@ -385,7 +413,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans
       <div class="form-group"><label>Amount</label><div class="amount-prefix"><span class="currency-label">KES</span><input type="number" id="e-amount" placeholder="0" min="0" step="1"/></div></div>
       <div class="form-group"><label>Description</label><input type="text" id="e-desc" placeholder="What was it for?" /></div>
       <div class="form-group"><label>Category</label>
-        <div class="cat-picker" id="e-category-picker"><button type="button" class="cat-picker-trigger" onclick="toggleCatPicker('e-category')"><span class="cat-picker-display"><svg class="cat-icon-svg" id="e-category-icon" aria-hidden="true"><use href="#icon-cat-groceries"/></svg><span id="e-category-label">Groceries</span></span><svg class="cat-picker-chevron" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button><input type="hidden" id="e-category" value="Groceries"/><div class="cat-picker-menu" id="e-category-menu"><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Groceries','icon-cat-groceries')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-groceries"/></svg><span>Groceries</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Eating Out','icon-cat-eatingout')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-eatingout"/></svg><span>Eating Out</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Food Delivery','icon-cat-fooddelivery')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-fooddelivery"/></svg><span>Food Delivery</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Utilities','icon-cat-utilities')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-utilities"/></svg><span>Utilities</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Transport','icon-cat-transport')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-transport"/></svg><span>Transport</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Personal Care','icon-cat-personalcare')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-personalcare"/></svg><span>Personal Care</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Entertainment','icon-cat-entertainment')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-entertainment"/></svg><span>Entertainment</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Salaries','icon-cat-salaries')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-salaries"/></svg><span>Salaries</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Loans','icon-cat-loans')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-loans"/></svg><span>Loans</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Charity/Gift','icon-cat-charitygift')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-charitygift"/></svg><span>Charity/Gift</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Subscriptions','icon-cat-subscriptions')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-subscriptions"/></svg><span>Subscriptions</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Other','icon-cat-other')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-other"/></svg><span>Other</span></button></div></div>
+        <div class="cat-picker" id="e-category-picker"><button type="button" class="cat-picker-trigger" onclick="toggleCatPicker('e-category')"><span class="cat-picker-display"><svg class="cat-icon-svg" id="e-category-icon" aria-hidden="true"><use href="#icon-cat-groceries"/></svg><span id="e-category-label">Groceries</span></span><svg class="cat-picker-chevron" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button><input type="hidden" id="e-category" value="Groceries"/><div class="cat-picker-menu" id="e-category-menu"><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Charity/Gift','icon-cat-charitygift')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-charitygift"/></svg><span>Charity/Gift</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Eating Out','icon-cat-eatingout')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-eatingout"/></svg><span>Eating Out</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Entertainment','icon-cat-entertainment')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-entertainment"/></svg><span>Entertainment</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Food Delivery','icon-cat-fooddelivery')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-fooddelivery"/></svg><span>Food Delivery</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Groceries','icon-cat-groceries')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-groceries"/></svg><span>Groceries</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Loans','icon-cat-loans')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-loans"/></svg><span>Loans</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Personal Care','icon-cat-personalcare')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-personalcare"/></svg><span>Personal Care</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Salaries','icon-cat-salaries')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-salaries"/></svg><span>Salaries</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Subscriptions','icon-cat-subscriptions')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-subscriptions"/></svg><span>Subscriptions</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Transport','icon-cat-transport')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-transport"/></svg><span>Transport</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Utilities','icon-cat-utilities')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-utilities"/></svg><span>Utilities</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Other','icon-cat-other')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-other"/></svg><span>Other</span></button></div></div>
       </div>
       <div class="form-group"><label>Type</label>
         <div class="toggle-group" id="e-type-group">
@@ -394,12 +422,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans
         </div>
       </div>
       <div class="form-group"><label>Payment Method</label>
-        <div class="toggle-group" id="e-payment-group">
-          <button class="toggle-btn active-payment" data-val="Mpesa" onclick="selectEditPayment('Mpesa')">Mpesa</button>
-          <button class="toggle-btn" data-val="Card" onclick="selectEditPayment('Card')">Card</button>
-          <button class="toggle-btn" data-val="Cash" onclick="selectEditPayment('Cash')">Cash</button>
-          <button class="toggle-btn" data-val="Revolut" onclick="selectEditPayment('Revolut')">Revolut</button>
-        </div>
+        <div class="toggle-group toggle-group-wrap" id="e-payment-group"></div>
       </div>
       <div class="form-group"><label>Date</label><input type="date" id="e-date" /></div>
       <div class="form-group"><label>Notes (optional)</label><textarea id="e-notes" placeholder="Any extra details..."></textarea></div>
@@ -691,6 +714,7 @@ function applyCurrencyToUI(){
 }
 
 function openSettings(){
+  renderPaymentMethodsSettings();
   document.getElementById('settings-currency').value = currentSettings.currency || 'KES';
   document.getElementById('settings-locale').value = currentSettings.locale || 'auto';
   document.getElementById('settings-overlay').style.display = 'flex';
@@ -1199,6 +1223,7 @@ async function initAuth() {
   var { data: { session } } = await db.auth.getSession();
   currentUserId = session?.user?.id || null;
   if (currentUserId) await loadUserSettings();
+  if (currentUserId) await loadPaymentMethods();
   if (session) {
     _showPinScreen();
   } else {
@@ -1239,6 +1264,126 @@ function toggleAuthMode(){
   document.getElementById('login-error').textContent = '';
 }
 
+
+var currentPaymentMethods = [];
+
+function _defaultPaymentMethodsForLocale(){
+  // Locale-aware sensible defaults for new users.
+  var country = (currentSettings && currentSettings.locale ? currentSettings.locale.split('-')[1] : '').toUpperCase();
+  if (country === 'KE') return ['Mpesa', 'Card', 'Cash'];
+  if (['GB','IE','NL','DE','FR','IT','ES','PT','BE','AT','FI','GR'].indexOf(country) >= 0) return ['Card', 'Cash', 'Bank Transfer'];
+  return ['Cash', 'Card', 'Bank Transfer'];
+}
+
+async function loadPaymentMethods(){
+  if (!currentUserId) return;
+  try {
+    var { data, error } = await db.from('payment_methods')
+      .select('*').eq('user_id', currentUserId).order('position');
+    if (error) console.warn('payment methods load error:', error);
+    if (!data || data.length === 0) {
+      // Seed defaults for first-time users
+      var defaults = _defaultPaymentMethodsForLocale();
+      var rows = defaults.map(function(label, i){
+        return { user_id: currentUserId, label: label, position: i };
+      });
+      var ins = await db.from('payment_methods').insert(rows).select();
+      data = ins.data || [];
+    }
+    currentPaymentMethods = data || [];
+  } catch(e){ console.warn('loadPaymentMethods failed:', e); }
+  renderPaymentButtons();
+}
+
+function renderPaymentButtons(){
+  ['payment-group', 'e-payment-group'].forEach(function(groupId){
+    var el = document.getElementById(groupId);
+    if (!el) return;
+    var isEdit = groupId === 'e-payment-group';
+    var clickFn = isEdit ? 'selectEditPayment' : 'selectPayment';
+    var current = isEdit ? selectedEditPayment : selectedPayment;
+    var html = '';
+    currentPaymentMethods.forEach(function(pm, i){
+      var active = (pm.label === current) ? 'active-payment' : '';
+      html += '<button class="toggle-btn ' + active + '" data-val="' + pm.label.replace(/"/g,'&quot;') + '" onclick="' + clickFn + '(\'' + pm.label.replace(/'/g,"\\'") + '\')">' + escapeHtml(pm.label) + '</button>';
+    });
+    el.innerHTML = html;
+  });
+  // Make sure selectedPayment is valid; fall back to first method
+  if (currentPaymentMethods.length && !currentPaymentMethods.some(function(p){return p.label===selectedPayment;})) {
+    selectedPayment = currentPaymentMethods[0].label;
+    renderPaymentButtons();
+  }
+}
+
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+
+// ── Settings: payment methods management ──────────────────────────────────────
+function renderPaymentMethodsSettings(){
+  var el = document.getElementById('settings-pm-list'); if (!el) return;
+  if (currentPaymentMethods.length === 0) {
+    el.innerHTML = '<div class="pm-empty">No payment methods yet. Add one below.</div>';
+    return;
+  }
+  el.innerHTML = currentPaymentMethods.map(function(pm){
+    return '<div class="pm-row">' +
+      '<span class="pm-row-label">' + escapeHtml(pm.label) + '</span>' +
+      '<div class="pm-row-actions">' +
+        '<button onclick="renamePaymentMethod(\'' + pm.id + '\')" title="Rename"><svg class="icon-svg" aria-hidden="true"><use href="#icon-edit"/></svg></button>' +
+        '<button onclick="deletePaymentMethod(\'' + pm.id + '\')" title="Delete"><svg class="icon-svg" aria-hidden="true"><use href="#icon-delete"/></svg></button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+async function addPaymentMethod(){
+  var input = document.getElementById('settings-pm-new');
+  var label = (input.value || '').trim();
+  if (!label) return;
+  var existing = currentPaymentMethods.some(function(p){return p.label.toLowerCase()===label.toLowerCase();});
+  if (existing) { showToast('Already in your list', 'var(--orange)'); return; }
+  var nextPos = currentPaymentMethods.reduce(function(m,p){return Math.max(m, p.position);}, -1) + 1;
+  var ins = await db.from('payment_methods').insert({ user_id: currentUserId, label: label, position: nextPos }).select().single();
+  if (ins.error) { showToast(ins.error.message, 'var(--red)'); return; }
+  currentPaymentMethods.push(ins.data);
+  input.value = '';
+  renderPaymentMethodsSettings();
+  renderPaymentButtons();
+}
+
+async function renamePaymentMethod(id){
+  var pm = currentPaymentMethods.find(function(p){return p.id===id;});
+  if (!pm) return;
+  var newLabel = prompt('Rename "' + pm.label + '" to:', pm.label);
+  if (!newLabel || newLabel.trim() === pm.label) return;
+  newLabel = newLabel.trim();
+  var existing = currentPaymentMethods.some(function(p){return p.id !== id && p.label.toLowerCase() === newLabel.toLowerCase();});
+  if (existing) { showToast('Already in your list', 'var(--orange)'); return; }
+  var oldLabel = pm.label;
+  var upd = await db.from('payment_methods').update({ label: newLabel }).eq('id', id);
+  if (upd.error) { showToast(upd.error.message, 'var(--red)'); return; }
+  pm.label = newLabel;
+  // Also update existing expense rows that referenced the old label so totals/breakdowns remain consistent
+  await db.from('expenses').update({ payment: newLabel }).eq('user_id', currentUserId).eq('payment', oldLabel);
+  if (selectedPayment === oldLabel) selectedPayment = newLabel;
+  renderPaymentMethodsSettings();
+  renderPaymentButtons();
+  showToast('Renamed');
+}
+
+async function deletePaymentMethod(id){
+  var pm = currentPaymentMethods.find(function(p){return p.id===id;});
+  if (!pm) return;
+  if (currentPaymentMethods.length <= 1) { showToast('Keep at least one payment method', 'var(--orange)'); return; }
+  if (!confirm('Delete "' + pm.label + '"? Existing expenses tagged with it will keep the label but it will be removed from the picker.')) return;
+  var del = await db.from('payment_methods').delete().eq('id', id);
+  if (del.error) { showToast(del.error.message, 'var(--red)'); return; }
+  currentPaymentMethods = currentPaymentMethods.filter(function(p){return p.id!==id;});
+  renderPaymentMethodsSettings();
+  renderPaymentButtons();
+  showToast('Removed');
+}
+
 function _showSignUpSuccess(email){
   var pc = document.querySelector('#login-screen .pin-content');
   pc.innerHTML = '<svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:16px"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>'
@@ -1272,6 +1417,7 @@ async function handleLogin() {
   } else {
     currentUserId = signInData?.user?.id || null;
     if (currentUserId) await loadUserSettings();
+    if (currentUserId) await loadPaymentMethods();
     document.getElementById('login-screen').classList.add('hidden');
     btn.disabled = false; btn.textContent = 'Sign In';
     _showPinScreen();
@@ -1419,6 +1565,15 @@ document.addEventListener('click',function(e){
           <option value="ja-JP">Japanese — 1,234</option>
         </select>
         <div class="settings-hint">Affects how numbers are grouped and the currency symbol position.</div>
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:6px;">
+        <label>Payment methods</label>
+        <div class="settings-hint" style="margin:0 0 8px 0">These appear as buttons when you log an expense. Add the ones you actually use, remove the rest.</div>
+        <div class="pm-list" id="settings-pm-list"></div>
+        <div class="pm-add">
+          <input type="text" id="settings-pm-new" placeholder="New method (e.g. Bank Transfer)" maxlength="40" onkeydown="if(event.key==='Enter'){event.preventDefault();addPaymentMethod();}">
+          <button onclick="addPaymentMethod()">Add</button>
+        </div>
       </div>
       <button class="btn-primary" id="settings-save-btn" onclick="saveSettings()">Save</button>
     </div>
