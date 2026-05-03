@@ -1170,7 +1170,6 @@ async function runMigration() {
 }
 
 init();
-initAuth();
 </script>
 
 <script>
@@ -1600,6 +1599,9 @@ function selectCat(inputId,label,iconId){
 document.addEventListener('click',function(e){
   if(!e.target.closest('.cat-picker'))document.querySelectorAll('.cat-picker.open').forEach(function(el){el.classList.remove('open');});
 });
+
+// Run auth bootstrap once everything is defined
+initAuth();
 </script>
 
 <div class="budget-overlay" id="budget-overlay" onclick="if(event.target===this)closeBudgetModal()">
