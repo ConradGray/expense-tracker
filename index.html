@@ -174,6 +174,7 @@ textarea{resize:none;height:72px;font-size:14px;}
 .login-input::placeholder{color:var(--muted);}
 .login-btn{width:100%;background:var(--green);border:none;border-radius:10px;color:var(--on-accent);padding:14px;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;}
 .login-btn:active{opacity:0.8;}
+.login-toggle{width:100%;background:none;border:none;color:var(--muted);font-size:13px;padding:8px;font-family:inherit;cursor:pointer;margin-top:8px;}
 .login-btn:disabled{opacity:0.5;cursor:not-allowed;}
 .logout-btn{position:absolute;top:16px;right:16px;background:none;border:1px solid var(--border);color:var(--muted);font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;}
 .logout-btn:active{color:var(--red);border-color:var(--red);}
@@ -1102,13 +1103,55 @@ async function initAuth() {
   });
 }
 
+var _authMode = 'signin';
+function toggleAuthMode(){
+  _authMode = _authMode === 'signin' ? 'signup' : 'signin';
+  var btn = document.getElementById('login-btn');
+  var toggle = document.getElementById('login-toggle-btn');
+  var subtitle = document.getElementById('login-subtitle');
+  var pw = document.getElementById('login-password');
+  if(_authMode === 'signup'){
+    btn.textContent = 'Create Account';
+    toggle.innerHTML = 'Already have an account? <span style="color:var(--green);font-weight:600">Sign in</span>';
+    subtitle.textContent = 'Create your free account';
+    pw.setAttribute('autocomplete','new-password');
+    pw.setAttribute('placeholder','Password (min 6 characters)');
+  } else {
+    btn.textContent = 'Sign In';
+    toggle.innerHTML = "Don't have an account? <span style=\"color:var(--green);font-weight:600\">Sign up</span>";
+    subtitle.textContent = 'Sign in to continue';
+    pw.setAttribute('autocomplete','current-password');
+    pw.setAttribute('placeholder','Password');
+  }
+  document.getElementById('login-error').textContent = '';
+}
+
+function _showSignUpSuccess(email){
+  var pc = document.querySelector('#login-screen .pin-content');
+  pc.innerHTML = '<svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:16px"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>'
+    + '<div class="pin-app-name">Check your email</div>'
+    + '<div style="font-size:14px;color:var(--muted);margin:12px 24px 24px;text-align:center;line-height:1.5">We sent a confirmation link to<br><strong style="color:var(--white)">'+email+'</strong><br><br>Click it to finish creating your account, then come back and sign in.</div>'
+    + '<button class="login-btn" onclick="location.reload()">Back to sign in</button>';
+}
+
 async function handleLogin() {
   var email = document.getElementById('login-email').value.trim();
   var password = document.getElementById('login-password').value;
   var btn = document.getElementById('login-btn');
   var errEl = document.getElementById('login-error');
   if (!email || !password) { errEl.textContent = 'Please enter your email and password'; return; }
-  btn.disabled = true; btn.textContent = 'Signing in…'; errEl.textContent = '';
+  errEl.textContent = '';
+
+  if (_authMode === 'signup') {
+    if (password.length < 6) { errEl.textContent = 'Password must be at least 6 characters'; return; }
+    btn.disabled = true; btn.textContent = 'Creating account…';
+    var { error: signUpError } = await db.auth.signUp({ email: email, password: password });
+    btn.disabled = false; btn.textContent = 'Create Account';
+    if (signUpError) { errEl.textContent = signUpError.message; return; }
+    return _showSignUpSuccess(email);
+  }
+
+  btn.disabled = true; btn.textContent = 'Signing in…';
   var { error } = await db.auth.signInWithPassword({ email: email, password: password });
   if (error) {
     errEl.textContent = error.message === 'Invalid login credentials' ? 'Incorrect email or password' : error.message;
@@ -1208,6 +1251,7 @@ document.addEventListener('click',function(e){
       <input type="password" id="login-password" class="login-input" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter')handleLogin()">
       <div id="login-error" style="color:var(--red);font-size:13px;min-height:18px;text-align:center"></div>
       <button id="login-btn" class="login-btn" onclick="handleLogin()">Sign In</button>
+      <button id="login-toggle-btn" class="login-toggle" onclick="toggleAuthMode()">Don't have an account? <span style="color:var(--green);font-weight:600">Sign up</span></button>
     </div>
   </div>
 </div>
