@@ -1229,7 +1229,7 @@ async function initAuth() {
   } else {
     document.getElementById('login-screen').classList.remove('hidden');
   }
-  db.auth.onAuthStateChange(function(event, session) {
+  db.auth.onAuthStateChange(async function(event, session) {
     currentUserId = session?.user?.id || null;
     if (event === 'SIGNED_OUT') {
       document.getElementById('pin-screen').classList.add('hidden');
@@ -1237,6 +1237,16 @@ async function initAuth() {
       document.getElementById('login-email').value = '';
       document.getElementById('login-password').value = '';
       document.getElementById('login-error').textContent = '';
+      currentPaymentMethods = [];
+      currentSettings = { currency: 'KES', locale: 'en-KE' };
+    }
+    // Always (re)load user state when we have a verified session.
+    // This covers the refresh case where getSession() returns before
+    // the JWT is fully available — onAuthStateChange fires after with
+    // SIGNED_IN/TOKEN_REFRESHED/INITIAL_SESSION and we re-fetch.
+    if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && currentUserId) {
+      try { await loadUserSettings(); } catch(e){}
+      try { await loadPaymentMethods(); } catch(e){}
     }
   });
 }
