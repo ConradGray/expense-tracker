@@ -262,6 +262,13 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans
   body{max-width:880px;}
   .bottom-nav{max-width:880px;}
 }
+
+.autocomplete-wrap{position:relative;}
+.autocomplete-list{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:4px;z-index:30;max-height:220px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,0.3);}
+.autocomplete-item{padding:10px 12px;cursor:pointer;color:var(--white);font-size:14px;border-radius:6px;}
+.autocomplete-item:hover,.autocomplete-item.active{background:var(--bg);}
+.autocomplete-item .ac-match{color:var(--green);font-weight:600;}
+.autocomplete-empty{padding:8px 12px;font-size:12px;color:var(--muted);}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -312,7 +319,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans
   </div>
   <div id="form-expense">
     <div class="form-group"><label>Amount</label><div class="amount-prefix"><span class="currency-label">KES</span><input type="number" id="f-amount" placeholder="0" min="0" step="1"/></div></div>
-    <div class="form-group"><label>Description</label><input type="text" id="f-desc" placeholder="What was it for?" /></div>
+    <div class="form-group"><label>Description</label><div class="autocomplete-wrap"><input type="text" id="f-desc" placeholder="What was it for?" autocomplete="off" oninput="renderDescAutocomplete('f-desc')" onfocus="renderDescAutocomplete('f-desc')" onblur="_hideAutocomplete('f-desc')" /><div class="autocomplete-list" id="f-desc-list" style="display:none"></div></div></div>
     <div class="form-group"><label>Category</label>
       <div class="cat-picker" id="f-category-picker"><button type="button" class="cat-picker-trigger" onclick="toggleCatPicker('f-category')"><span class="cat-picker-display"><svg class="cat-icon-svg" id="f-category-icon" aria-hidden="true"><use href="#icon-cat-groceries"/></svg><span id="f-category-label">Groceries</span></span><svg class="cat-picker-chevron" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button><input type="hidden" id="f-category" value="Groceries"/><div class="cat-picker-menu" id="f-category-menu"><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Charity/Gift','icon-cat-charitygift')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-charitygift"/></svg><span>Charity/Gift</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Eating Out','icon-cat-eatingout')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-eatingout"/></svg><span>Eating Out</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Entertainment','icon-cat-entertainment')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-entertainment"/></svg><span>Entertainment</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Food Delivery','icon-cat-fooddelivery')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-fooddelivery"/></svg><span>Food Delivery</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Groceries','icon-cat-groceries')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-groceries"/></svg><span>Groceries</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Loans','icon-cat-loans')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-loans"/></svg><span>Loans</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Personal Care','icon-cat-personalcare')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-personalcare"/></svg><span>Personal Care</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Salaries','icon-cat-salaries')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-salaries"/></svg><span>Salaries</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Subscriptions','icon-cat-subscriptions')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-subscriptions"/></svg><span>Subscriptions</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Transport','icon-cat-transport')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-transport"/></svg><span>Transport</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Utilities','icon-cat-utilities')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-utilities"/></svg><span>Utilities</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Other','icon-cat-other')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-other"/></svg><span>Other</span></button></div></div>
     </div>
@@ -411,7 +418,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans
     <!-- Edit Expense form -->
     <div id="edit-form-expense">
       <div class="form-group"><label>Amount</label><div class="amount-prefix"><span class="currency-label">KES</span><input type="number" id="e-amount" placeholder="0" min="0" step="1"/></div></div>
-      <div class="form-group"><label>Description</label><input type="text" id="e-desc" placeholder="What was it for?" /></div>
+      <div class="form-group"><label>Description</label><div class="autocomplete-wrap"><input type="text" id="e-desc" placeholder="What was it for?" autocomplete="off" oninput="renderDescAutocomplete('e-desc')" onfocus="renderDescAutocomplete('e-desc')" onblur="_hideAutocomplete('e-desc')" /><div class="autocomplete-list" id="e-desc-list" style="display:none"></div></div></div>
       <div class="form-group"><label>Category</label>
         <div class="cat-picker" id="e-category-picker"><button type="button" class="cat-picker-trigger" onclick="toggleCatPicker('e-category')"><span class="cat-picker-display"><svg class="cat-icon-svg" id="e-category-icon" aria-hidden="true"><use href="#icon-cat-groceries"/></svg><span id="e-category-label">Groceries</span></span><svg class="cat-picker-chevron" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button><input type="hidden" id="e-category" value="Groceries"/><div class="cat-picker-menu" id="e-category-menu"><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Charity/Gift','icon-cat-charitygift')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-charitygift"/></svg><span>Charity/Gift</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Eating Out','icon-cat-eatingout')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-eatingout"/></svg><span>Eating Out</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Entertainment','icon-cat-entertainment')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-entertainment"/></svg><span>Entertainment</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Food Delivery','icon-cat-fooddelivery')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-fooddelivery"/></svg><span>Food Delivery</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Groceries','icon-cat-groceries')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-groceries"/></svg><span>Groceries</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Loans','icon-cat-loans')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-loans"/></svg><span>Loans</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Personal Care','icon-cat-personalcare')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-personalcare"/></svg><span>Personal Care</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Salaries','icon-cat-salaries')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-salaries"/></svg><span>Salaries</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Subscriptions','icon-cat-subscriptions')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-subscriptions"/></svg><span>Subscriptions</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Transport','icon-cat-transport')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-transport"/></svg><span>Transport</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Utilities','icon-cat-utilities')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-utilities"/></svg><span>Utilities</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Other','icon-cat-other')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-other"/></svg><span>Other</span></button></div></div>
       </div>
@@ -761,6 +768,7 @@ async function submitExpense() {
   if (error) { showToast('Error: ' + error.message,'var(--red)'); return; }
   showToast('Expense logged');
   ['f-amount','f-desc','f-notes'].forEach(function(id){ document.getElementById(id).value = ''; });
+  loadDescriptionHistory();
 }
 
 async function submitIncome() {
@@ -1224,6 +1232,7 @@ async function initAuth() {
   currentUserId = session?.user?.id || null;
   if (currentUserId) await loadUserSettings();
   if (currentUserId) await loadPaymentMethods();
+  if (currentUserId) await loadDescriptionHistory();
   if (session) {
     _showPinScreen();
   } else {
@@ -1247,6 +1256,7 @@ async function initAuth() {
     if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && currentUserId) {
       try { await loadUserSettings(); } catch(e){}
       try { await loadPaymentMethods(); } catch(e){}
+      try { await loadDescriptionHistory(); } catch(e){}
     }
   });
 }
@@ -1394,6 +1404,96 @@ async function deletePaymentMethod(id){
   showToast('Removed');
 }
 
+
+var descriptionHistory = [];
+
+async function loadDescriptionHistory(){
+  if (!currentUserId) return;
+  try {
+    var { data, error } = await db.from('expenses')
+      .select('description, created_at')
+      .eq('user_id', currentUserId)
+      .not('description', 'is', null)
+      .order('created_at', { ascending: false })
+      .limit(200);
+    if (error){ console.warn('description history error:', error); return; }
+    if (!data) return;
+    var seen = new Set();
+    var hist = [];
+    for (var i=0; i<data.length && hist.length<50; i++){
+      var d = (data[i].description || '').trim();
+      if (d && !seen.has(d.toLowerCase())){
+        seen.add(d.toLowerCase());
+        hist.push(d);
+      }
+    }
+    descriptionHistory = hist;
+  } catch(e){ console.warn('loadDescriptionHistory failed:', e); }
+}
+
+function _escapeHtmlAc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+
+function _highlightMatch(text, query){
+  if (!query) return _escapeHtmlAc(text);
+  var lc = text.toLowerCase();
+  var idx = lc.indexOf(query.toLowerCase());
+  if (idx < 0) return _escapeHtmlAc(text);
+  return _escapeHtmlAc(text.slice(0, idx)) +
+         '<span class="ac-match">' + _escapeHtmlAc(text.slice(idx, idx+query.length)) + '</span>' +
+         _escapeHtmlAc(text.slice(idx+query.length));
+}
+
+function renderDescAutocomplete(inputId){
+  var input = document.getElementById(inputId);
+  var list = document.getElementById(inputId + '-list');
+  if (!input || !list) return;
+  var rawQuery = (input.value || '').trim();
+  var query = rawQuery.toLowerCase();
+  // No query yet → show top recent items if there's history
+  if (!query) {
+    if (descriptionHistory.length === 0){ list.style.display = 'none'; return; }
+    var recent = descriptionHistory.slice(0, 5);
+    list.innerHTML = recent.map(function(m){
+      return '<div class="autocomplete-item" onmousedown="event.preventDefault();_pickAutocomplete(\'' + inputId + '\',this.dataset.v)" data-v="' + _escapeHtmlAc(m) + '">' + _escapeHtmlAc(m) + '</div>';
+    }).join('');
+    list.style.display = 'block';
+    return;
+  }
+  // Score: starts-with first, then contains. Skip exact match.
+  var startsWith = [], contains = [];
+  for (var i=0; i<descriptionHistory.length; i++){
+    var d = descriptionHistory[i];
+    var lc = d.toLowerCase();
+    if (lc === query) continue;
+    if (lc.startsWith(query)) startsWith.push(d);
+    else if (lc.indexOf(query) >= 0) contains.push(d);
+  }
+  var matches = startsWith.concat(contains).slice(0, 5);
+  if (matches.length === 0){ list.style.display = 'none'; return; }
+  list.innerHTML = matches.map(function(m){
+    return '<div class="autocomplete-item" onmousedown="event.preventDefault();_pickAutocomplete(\'' + inputId + '\',this.dataset.v)" data-v="' + _escapeHtmlAc(m) + '">' + _highlightMatch(m, rawQuery) + '</div>';
+  }).join('');
+  list.style.display = 'block';
+}
+
+function _pickAutocomplete(inputId, value){
+  var input = document.getElementById(inputId);
+  if (!input) return;
+  input.value = value;
+  var list = document.getElementById(inputId + '-list');
+  if (list) list.style.display = 'none';
+  // Also dispatch input event in case anything listens
+  try { input.dispatchEvent(new Event('input', {bubbles:true})); } catch(e){}
+}
+
+function _hideAutocomplete(inputId){
+  // Delay so onmousedown on item fires before blur hides the list
+  setTimeout(function(){
+    var list = document.getElementById(inputId + '-list');
+    if (list) list.style.display = 'none';
+  }, 200);
+}
+
 function _showSignUpSuccess(email){
   var pc = document.querySelector('#login-screen .pin-content');
   pc.innerHTML = '<svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:16px"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>'
@@ -1428,6 +1528,7 @@ async function handleLogin() {
     currentUserId = signInData?.user?.id || null;
     if (currentUserId) await loadUserSettings();
     if (currentUserId) await loadPaymentMethods();
+    if (currentUserId) await loadDescriptionHistory();
     document.getElementById('login-screen').classList.add('hidden');
     btn.disabled = false; btn.textContent = 'Sign In';
     _showPinScreen();
