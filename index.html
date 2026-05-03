@@ -1573,6 +1573,26 @@ function _pinUnlock(){ document.getElementById('pin-screen').classList.add('hidd
 function _pinShake(showError){ var dots=document.getElementById('pin-dots'); if(showError) for(var i=0;i<4;i++) document.getElementById('pd'+i).classList.add('error'); dots.classList.add('shake'); setTimeout(function(){ dots.classList.remove('shake'); _pinUpdateDots(); }, 500); }
 function pinReset(){ if(confirm('This will clear your PIN and you will need to set a new one. Continue?')){ localStorage.removeItem('financePin'); window._pinMode='create'; window._pinEntry=''; window._pinFirst=''; document.getElementById('pin-title').textContent='Create a 4-digit PIN'; document.getElementById('pin-reset-btn').style.display='none'; _pinUpdateDots(); } }
 
+// Keyboard support for the PIN screen.
+document.addEventListener('keydown', function(e){
+  var pinScreen = document.getElementById('pin-screen');
+  if (!pinScreen || pinScreen.classList.contains('hidden')) return;
+  // Don't intercept if the user is typing into a normal input (e.g. PIN reset confirm)
+  var t = e.target;
+  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+  if (e.key >= '0' && e.key <= '9') {
+    e.preventDefault();
+    pinPress(e.key);
+  } else if (e.key === 'Backspace' || e.key === 'Delete') {
+    e.preventDefault();
+    pinDel();
+  } else if (e.key === 'Enter') {
+    // No-op — pinProcess auto-runs at 4 chars
+    e.preventDefault();
+  }
+});
+
+
 
 var CAT_ICON_MAP = {"Groceries": "icon-cat-groceries", "Eating Out": "icon-cat-eatingout", "Food Delivery": "icon-cat-fooddelivery", "Utilities": "icon-cat-utilities", "Transport": "icon-cat-transport", "Personal Care": "icon-cat-personalcare", "Entertainment": "icon-cat-entertainment", "Salaries": "icon-cat-salaries", "Loans": "icon-cat-loans", "Charity/Gift": "icon-cat-charitygift", "Subscriptions": "icon-cat-subscriptions", "Other": "icon-cat-other"};
 function setCatValue(inputId, label){
