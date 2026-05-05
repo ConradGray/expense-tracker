@@ -1304,9 +1304,19 @@ async function exportCSV(){
 }
 
 // ── Supabase Auth ──────────────────────────────────────────────────────────────
+// Owner-only feature gate. Debts is hidden for everyone except this user_id
+// until we rebuild it as a proper Pro feature. Conrad's account.
+var OWNER_USER_ID = 'c7a09a34-fe15-4f03-adee-6f41fd074172';
+function applyDebtsVisibility() {
+  var btn = document.getElementById('nav-debts');
+  if (!btn) return;
+  btn.style.display = (currentUserId === OWNER_USER_ID) ? '' : 'none';
+}
+
 async function initAuth() {
   var { data: { session } } = await db.auth.getSession();
   currentUserId = session?.user?.id || null;
+  applyDebtsVisibility();
   if (currentUserId) await loadUserSettings();
   if (currentUserId) await loadPaymentMethods();
   if (currentUserId) await loadDescriptionHistory();
@@ -1317,6 +1327,7 @@ async function initAuth() {
   }
   db.auth.onAuthStateChange(async function(event, session) {
     currentUserId = session?.user?.id || null;
+    applyDebtsVisibility();
     if (event === 'SIGNED_OUT') {
       document.getElementById('pin-screen').classList.add('hidden');
       document.getElementById('login-screen').classList.remove('hidden');
@@ -1603,6 +1614,7 @@ async function handleLogin() {
     btn.disabled = false; btn.textContent = 'Sign In';
   } else {
     currentUserId = signInData?.user?.id || null;
+    applyDebtsVisibility();
     if (currentUserId) await loadUserSettings();
     if (currentUserId) await loadPaymentMethods();
     if (currentUserId) await loadDescriptionHistory();
