@@ -701,9 +701,44 @@ function watchForLoadingStuck(elementId, retryFnName, ms) {
     var txt = (el.textContent || '').trim();
     if (txt === 'Loading...' || txt === 'Loading') {
       console.warn('[loading-stuck]', elementId, 'still loading after', ms, 'ms — showing retry');
-      el.innerHTML = '<div class="empty"><div style="margin-bottom:10px;color:var(--muted)">Couldn\'t load &mdash; check your connection</div><button onclick="' + retryFnName + '()" style="background:var(--green);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">Tap to retry</button></div>';
+      el.innerHTML = '<div class="empty"><div style="margin-bottom:10px;color:var(--muted)">Couldn\'t load &mdash; check your connection</div><button onclick="hardRetry(\'' + retryFnName + '\',\'' + elementId + '\')" style="background:var(--green);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">Tap to retry</button></div>';
     }
   }, ms);
+}
+
+// Real retry — force a fresh Supabase session before re-running the loader.
+// The most common cause of a stuck "Loading..." is a stale JWT (token refresh
+// silently failed during a flaky network moment). The Supabase client keeps
+// trying to use the bad token on every subsequent query, so a plain retry
+// just stalls again. refreshSession() forces a clean handshake; if that itself
+// fails we know the network is genuinely down and surface a clearer message.
+async function hardRetry(loaderName, elementId) {
+  var el = elementId ? document.getElementById(elementId) : null;
+  if (el) el.innerHTML = '<div class="empty">Reconnecting...</div>';
+  var refreshOk = false;
+  try {
+    var refreshResult = await Promise.race([
+      db.auth.refreshSession(),
+      new Promise(function(_, reject){ setTimeout(function(){ reject(new Error('refresh timeout')); }, 5000); })
+    ]);
+    refreshOk = !(refreshResult && refreshResult.error);
+    if (refreshResult && refreshResult.data && refreshResult.data.user) {
+      currentUserId = refreshResult.data.user.id;
+    }
+  } catch(e) {
+    console.warn('[hardRetry] refreshSession failed:', e && e.message);
+    refreshOk = false;
+  }
+  if (!refreshOk) {
+    if (el) {
+      el.innerHTML = '<div class="empty"><div style="margin-bottom:10px;color:var(--muted)">No connection &mdash; check your WiFi or mobile data</div><button onclick="hardRetry(\'' + loaderName + '\',\'' + elementId + '\')" style="background:var(--green);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">Try again</button></div>';
+    }
+    return;
+  }
+  // Session is fresh — call the original loader.
+  if (typeof window[loaderName] === 'function') {
+    try { window[loaderName](); } catch(e){ console.error('[hardRetry] loader threw:', e); }
+  }
 }
 
 var currentSettings = { currency: 'KES', locale: 'en-KE', name: '' };
