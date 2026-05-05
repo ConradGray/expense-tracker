@@ -649,7 +649,13 @@ async function saveEditExpense() {
   var notes = document.getElementById('e-notes').value.trim();
   if (!amount || parseFloat(amount) <= 0) { showToast('Enter an amount','var(--red)'); return; }
   if (!desc) { showToast('Add a description','var(--red)'); return; }
-  await db.from('expenses').update({ amount: parseFloat(amount), description: desc, category, type: selectedEditType, payment: selectedEditPayment, date, notes }).eq('id', editingExpenseId);
+  var result = await saveWithTimeout(db.from('expenses').update({ amount: parseFloat(amount), description: desc, category, type: selectedEditType, payment: selectedEditPayment, date, notes }).eq('id', editingExpenseId));
+  if (result.error) {
+    showToast('Error: ' + result.error.message, 'var(--red)');
+    _onTimedOutSave(result);
+    document.getElementById('edit-overlay').style.display = 'none';
+    return;
+  }
   showToast('Updated');
   document.getElementById('edit-overlay').style.display = 'none';
   var savedCat = _editCat;
@@ -666,7 +672,13 @@ async function saveEditIncome() {
   var notes = document.getElementById('ei-notes').value.trim();
   if (!amount || parseFloat(amount) <= 0) { showToast('Enter an amount','var(--red)'); return; }
   if (!source) { showToast('Add a source','var(--red)'); return; }
-  await db.from('income').update({ amount: parseFloat(amount), source, type: selectedEditIncomeType, date, notes }).eq('id', editingIncomeId);
+  var result = await saveWithTimeout(db.from('income').update({ amount: parseFloat(amount), source, type: selectedEditIncomeType, date, notes }).eq('id', editingIncomeId));
+  if (result.error) {
+    showToast('Error: ' + result.error.message, 'var(--red)');
+    _onTimedOutSave(result);
+    document.getElementById('edit-overlay').style.display = 'none';
+    return;
+  }
   showToast('Updated');
   document.getElementById('edit-overlay').style.display = 'none';
   editingIncomeId = null;
@@ -689,6 +701,27 @@ function showToast(msg, color) {
   t.style.color = color ? '#fff' : '#000';
   t.classList.add('show');
   setTimeout(function(){ t.classList.remove('show'); }, 2500);
+}
+
+// Wrap a Supabase mutation in a timeout. Resolves with {error,_timedOut:true} on timeout
+// so save handlers can escape stuck-network / stale-JWT states without freezing the UI.
+function saveWithTimeout(mutationPromise, ms) {
+  ms = ms || 12000;
+  return Promise.race([
+    mutationPromise,
+    new Promise(function(resolve){
+      setTimeout(function(){
+        resolve({ error: { message: "Couldn't save — check your connection and try again" }, _timedOut: true });
+      }, ms);
+    })
+  ]);
+}
+// On a timed-out save, opportunistically refresh the JWT so the next attempt has a clean session.
+function _onTimedOutSave(result) {
+  if (result && result._timedOut) {
+    console.warn('[save-timed-out] background-refreshing session');
+    try { db.auth.refreshSession(); } catch(e){}
+  }
 }
 
 // If a content area is still showing "Loading..." after `ms`, swap it for a softer prompt
@@ -873,9 +906,9 @@ async function submitExpense() {
   if (!desc) { showToast('Add a description','var(--red)'); return; }
   var btn = document.getElementById('submit-expense-btn');
   btn.disabled = true; btn.textContent = 'Saving...';
-  var { error } = await db.from('expenses').insert({ user_id: currentUserId, date, amount: parseFloat(amount), description: desc, category, type: selectedType, payment: selectedPayment, notes });
+  var result = await saveWithTimeout(db.from('expenses').insert({ user_id: currentUserId, date, amount: parseFloat(amount), description: desc, category, type: selectedType, payment: selectedPayment, notes }));
   btn.disabled = false; btn.textContent = 'Log Expense';
-  if (error) { showToast('Error: ' + error.message,'var(--red)'); return; }
+  if (result.error) { showToast('Error: ' + result.error.message,'var(--red)'); _onTimedOutSave(result); return; }
   showToast('Expense logged');
   ['f-amount','f-desc','f-notes'].forEach(function(id){ document.getElementById(id).value = ''; });
   loadDescriptionHistory();
@@ -888,9 +921,9 @@ async function submitIncome() {
   if (!source) { showToast('Add a source','var(--red)'); return; }
   var btn = document.getElementById('submit-income-btn');
   btn.disabled = true; btn.textContent = 'Saving...';
-  var { error } = await db.from('income').insert({ user_id: currentUserId, date, amount: parseFloat(amount), source, notes, type: selectedIncomeType });
+  var result = await saveWithTimeout(db.from('income').insert({ user_id: currentUserId, date, amount: parseFloat(amount), source, notes, type: selectedIncomeType }));
   btn.disabled = false; btn.textContent = 'Log Income';
-  if (error) { showToast('Error: ' + error.message,'var(--red)'); return; }
+  if (result.error) { showToast('Error: ' + result.error.message,'var(--red)'); _onTimedOutSave(result); return; }
   showToast('Income logged');
   ['i-amount','i-source','i-notes'].forEach(function(id){ document.getElementById(id).value = ''; });
   selectedIncomeType = 'Personal';
@@ -908,9 +941,20 @@ async function submitLoan() {
   if (!person) { showToast('Add a person','var(--red)'); return; }
   var btn = document.getElementById('submit-loan-btn');
   btn.disabled = true; btn.textContent = 'Saving...';
-  await db.from('loans').insert({ user_id: currentUserId, date, amount: parseFloat(amount), person, purpose, notes, status: 'outstanding' });
-  await db.from('expenses').insert({ user_id: currentUserId, date, amount: parseFloat(amount), description: 'Loan to ' + person + (purpose ? ' - ' + purpose : ''), category: 'Loans', type: 'Business', payment: selectedPayment, notes });
+  var loanResult = await saveWithTimeout(db.from('loans').insert({ user_id: currentUserId, date, amount: parseFloat(amount), person, purpose, notes, status: 'outstanding' }));
+  if (loanResult.error) {
+    btn.disabled = false; btn.textContent = 'Log Loan';
+    showToast('Error: ' + loanResult.error.message, 'var(--red)');
+    _onTimedOutSave(loanResult);
+    return;
+  }
+  var expResult = await saveWithTimeout(db.from('expenses').insert({ user_id: currentUserId, date, amount: parseFloat(amount), description: 'Loan to ' + person + (purpose ? ' - ' + purpose : ''), category: 'Loans', type: 'Business', payment: selectedPayment, notes }));
   btn.disabled = false; btn.textContent = 'Log Loan';
+  if (expResult.error) {
+    showToast('Loan saved, but linked expense failed: ' + expResult.error.message, 'var(--red)');
+    _onTimedOutSave(expResult);
+    return;
+  }
   showToast('Loan logged');
   ['l-amount','l-person','l-purpose','l-notes'].forEach(function(id){ document.getElementById(id).value = ''; });
 }
