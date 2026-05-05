@@ -691,17 +691,18 @@ function showToast(msg, color) {
   setTimeout(function(){ t.classList.remove('show'); }, 2500);
 }
 
-// If a content area is still showing "Loading..." after `ms`, swap it for a "Tap to retry" button.
-// Used to escape the dreaded infinite-spinner state when a fetch silently stalls (flaky network).
+// If a content area is still showing "Loading..." after `ms`, swap it for a softer prompt
+// the user can tap if it really feels stuck. 15s is forgiving enough that normal slow
+// loads complete invisibly; only actually-stuck cases see this message.
 function watchForLoadingStuck(elementId, retryFnName, ms) {
-  ms = ms || 6000;
+  ms = ms || 15000;
   setTimeout(function() {
     var el = document.getElementById(elementId);
     if (!el) return;
     var txt = (el.textContent || '').trim();
     if (txt === 'Loading...' || txt === 'Loading') {
-      console.warn('[loading-stuck]', elementId, 'still loading after', ms, 'ms — showing retry');
-      el.innerHTML = '<div class="empty"><div style="margin-bottom:10px;color:var(--muted)">Couldn\'t load &mdash; check your connection</div><button onclick="hardRetry(\'' + retryFnName + '\',\'' + elementId + '\')" style="background:var(--green);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">Tap to retry</button></div>';
+      console.warn('[loading-slow]', elementId, 'still loading after', ms, 'ms — offering manual reconnect');
+      el.innerHTML = '<div class="empty"><div style="margin-bottom:10px;color:var(--muted);font-size:13px">Still loading… tap if stuck</div><button onclick="hardRetry(\'' + retryFnName + '\',\'' + elementId + '\')" style="background:none;color:var(--green);border:1px solid var(--green);padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">Reconnect</button></div>';
     }
   }, ms);
 }
