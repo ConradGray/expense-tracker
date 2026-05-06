@@ -1356,7 +1356,16 @@ init();
 </script>
 
 <script>
-if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js').catch(function(){});});}
+// Service worker disabled: a stale SW was intercepting Supabase API requests on mobile
+// and hanging them, while desktop browsers (with a fresher/no SW) worked fine. Unregister
+// any existing SW on every page load to nuke the cached interceptor for all users.
+// SidePocket is now a regular website — bookmarkable, "Add to Home Screen"-able on iOS,
+// but no longer registers a SW until we ship one that doesn't break API requests.
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.getRegistrations().then(function(regs){
+    regs.forEach(function(r){ r.unregister().then(function(){ console.log('[sw-killer] unregistered stale service worker'); }); });
+  }).catch(function(){});
+}
 
 function getBudgets(){try{return JSON.parse(localStorage.getItem('financeBudgets')||'{}');}catch(e){return {};}}
 
