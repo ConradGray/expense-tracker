@@ -649,10 +649,9 @@ async function saveEditExpense() {
   var notes = document.getElementById('e-notes').value.trim();
   if (!amount || parseFloat(amount) <= 0) { showToast('Enter an amount','var(--red)'); return; }
   if (!desc) { showToast('Add a description','var(--red)'); return; }
-  var result = await saveWithTimeout(db.from('expenses').update({ amount: parseFloat(amount), description: desc, category, type: selectedEditType, payment: selectedEditPayment, date, notes }).eq('id', editingExpenseId));
+  var result = await saveWithRetry(function(){ return db.from('expenses').update({ amount: parseFloat(amount), description: desc, category, type: selectedEditType, payment: selectedEditPayment, date, notes }).eq('id', editingExpenseId); });
   if (result.error) {
     showToast('Error: ' + result.error.message, 'var(--red)');
-    _onTimedOutSave(result);
     document.getElementById('edit-overlay').style.display = 'none';
     return;
   }
@@ -672,10 +671,9 @@ async function saveEditIncome() {
   var notes = document.getElementById('ei-notes').value.trim();
   if (!amount || parseFloat(amount) <= 0) { showToast('Enter an amount','var(--red)'); return; }
   if (!source) { showToast('Add a source','var(--red)'); return; }
-  var result = await saveWithTimeout(db.from('income').update({ amount: parseFloat(amount), source, type: selectedEditIncomeType, date, notes }).eq('id', editingIncomeId));
+  var result = await saveWithRetry(function(){ return db.from('income').update({ amount: parseFloat(amount), source, type: selectedEditIncomeType, date, notes }).eq('id', editingIncomeId); });
   if (result.error) {
     showToast('Error: ' + result.error.message, 'var(--red)');
-    _onTimedOutSave(result);
     document.getElementById('edit-overlay').style.display = 'none';
     return;
   }
@@ -703,26 +701,55 @@ function showToast(msg, color) {
   setTimeout(function(){ t.classList.remove('show'); }, 2500);
 }
 
-// Wrap a Supabase mutation in a timeout. Resolves with {error,_timedOut:true} on timeout
-// so save handlers can escape stuck-network / stale-JWT states without freezing the UI.
-function saveWithTimeout(mutationPromise, ms) {
-  ms = ms || 12000;
-  return Promise.race([
-    mutationPromise,
-    new Promise(function(resolve){
-      setTimeout(function(){
-        resolve({ error: { message: "Couldn't save — check your connection and try again" }, _timedOut: true });
-      }, ms);
-    })
-  ]);
-}
-// On a timed-out save, opportunistically refresh the JWT so the next attempt has a clean session.
-function _onTimedOutSave(result) {
-  if (result && result._timedOut) {
-    console.warn('[save-timed-out] background-refreshing session');
-    try { db.auth.refreshSession(); } catch(e){}
+// Wrap a Supabase mutation with timeout + auto-retry on stale JWT.
+// First attempt times out at `ms` ms. If it timed out (not a real error), we silently
+// refresh the auth session and try ONCE more. This handles the common case where the
+// JWT silently expired and the client got stuck refreshing a bad token. The user sees
+// "Saving…" → "Reconnecting…" → success, with no manual retry needed.
+//
+// Pass `makeMutation` as a function returning a Promise so we can re-invoke it for
+// the retry. `opts.btn` is the submit button — we update its label to "Reconnecting…"
+// during the retry so the user can see something is happening.
+async function saveWithRetry(makeMutation, opts) {
+  opts = opts || {};
+  var ms = opts.ms || 12000;
+  var btn = opts.btn || null;
+  var btnRetryLabel = opts.btnRetryLabel || 'Reconnecting…';
+
+  function _race(p, msg) {
+    return Promise.race([
+      p,
+      new Promise(function(resolve){
+        setTimeout(function(){ resolve({ error: { message: msg }, _timedOut: true }); }, ms);
+      })
+    ]);
   }
+
+  var first = await _race(makeMutation(), "Couldn't save — retrying with a fresh session");
+  if (!first.error) return first;
+  if (!first._timedOut) return first; // real Supabase error — don't auto-retry
+
+  // Timed out — force a fresh session and retry once.
+  console.warn('[save-retry] first attempt timed out — refreshing JWT and retrying');
+  if (btn) btn.textContent = btnRetryLabel;
+  try {
+    await Promise.race([
+      db.auth.refreshSession(),
+      new Promise(function(_, reject){ setTimeout(function(){ reject(new Error('refresh timeout')); }, 5000); })
+    ]);
+  } catch(e) {
+    console.warn('[save-retry] refreshSession failed:', e && e.message);
+  }
+  var second = await _race(makeMutation(), "Couldn't save — check your connection and try again");
+  return second;
 }
+
+// Backwards-compat wrapper — keeps the older "wrap a Promise" style callable but routes
+// through the new retry logic. Internally normalises a Promise into a function for retry.
+function saveWithTimeout(mutationPromise, ms) {
+  return saveWithRetry(function(){ return mutationPromise; }, { ms: ms });
+}
+function _onTimedOutSave(result) { /* no-op now — retry is built into saveWithRetry */ }
 
 // If a content area is still showing "Loading..." after `ms`, swap it for a softer prompt
 // the user can tap if it really feels stuck. 15s is forgiving enough that normal slow
@@ -906,9 +933,9 @@ async function submitExpense() {
   if (!desc) { showToast('Add a description','var(--red)'); return; }
   var btn = document.getElementById('submit-expense-btn');
   btn.disabled = true; btn.textContent = 'Saving...';
-  var result = await saveWithTimeout(db.from('expenses').insert({ user_id: currentUserId, date, amount: parseFloat(amount), description: desc, category, type: selectedType, payment: selectedPayment, notes }));
+  var result = await saveWithRetry(function(){ return db.from('expenses').insert({ user_id: currentUserId, date, amount: parseFloat(amount), description: desc, category, type: selectedType, payment: selectedPayment, notes }); }, { btn: btn });
   btn.disabled = false; btn.textContent = 'Log Expense';
-  if (result.error) { showToast('Error: ' + result.error.message,'var(--red)'); _onTimedOutSave(result); return; }
+  if (result.error) { showToast('Error: ' + result.error.message,'var(--red)'); return; }
   showToast('Expense logged');
   ['f-amount','f-desc','f-notes'].forEach(function(id){ document.getElementById(id).value = ''; });
   loadDescriptionHistory();
@@ -921,9 +948,9 @@ async function submitIncome() {
   if (!source) { showToast('Add a source','var(--red)'); return; }
   var btn = document.getElementById('submit-income-btn');
   btn.disabled = true; btn.textContent = 'Saving...';
-  var result = await saveWithTimeout(db.from('income').insert({ user_id: currentUserId, date, amount: parseFloat(amount), source, notes, type: selectedIncomeType }));
+  var result = await saveWithRetry(function(){ return db.from('income').insert({ user_id: currentUserId, date, amount: parseFloat(amount), source, notes, type: selectedIncomeType }); }, { btn: btn });
   btn.disabled = false; btn.textContent = 'Log Income';
-  if (result.error) { showToast('Error: ' + result.error.message,'var(--red)'); _onTimedOutSave(result); return; }
+  if (result.error) { showToast('Error: ' + result.error.message,'var(--red)'); return; }
   showToast('Income logged');
   ['i-amount','i-source','i-notes'].forEach(function(id){ document.getElementById(id).value = ''; });
   selectedIncomeType = 'Personal';
@@ -941,18 +968,16 @@ async function submitLoan() {
   if (!person) { showToast('Add a person','var(--red)'); return; }
   var btn = document.getElementById('submit-loan-btn');
   btn.disabled = true; btn.textContent = 'Saving...';
-  var loanResult = await saveWithTimeout(db.from('loans').insert({ user_id: currentUserId, date, amount: parseFloat(amount), person, purpose, notes, status: 'outstanding' }));
+  var loanResult = await saveWithRetry(function(){ return db.from('loans').insert({ user_id: currentUserId, date, amount: parseFloat(amount), person, purpose, notes, status: 'outstanding' }); }, { btn: btn });
   if (loanResult.error) {
     btn.disabled = false; btn.textContent = 'Log Loan';
     showToast('Error: ' + loanResult.error.message, 'var(--red)');
-    _onTimedOutSave(loanResult);
     return;
   }
-  var expResult = await saveWithTimeout(db.from('expenses').insert({ user_id: currentUserId, date, amount: parseFloat(amount), description: 'Loan to ' + person + (purpose ? ' - ' + purpose : ''), category: 'Loans', type: 'Business', payment: selectedPayment, notes }));
+  var expResult = await saveWithRetry(function(){ return db.from('expenses').insert({ user_id: currentUserId, date, amount: parseFloat(amount), description: 'Loan to ' + person + (purpose ? ' - ' + purpose : ''), category: 'Loans', type: 'Business', payment: selectedPayment, notes }); }, { btn: btn });
   btn.disabled = false; btn.textContent = 'Log Loan';
   if (expResult.error) {
     showToast('Loan saved, but linked expense failed: ' + expResult.error.message, 'var(--red)');
-    _onTimedOutSave(expResult);
     return;
   }
   showToast('Loan logged');
