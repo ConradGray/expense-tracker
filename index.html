@@ -122,10 +122,11 @@ textarea{resize:none;height:72px;font-size:14px;}
 .expense-meta{font-size:12px;color:var(--muted);margin-top:2px;}
 .expense-amount{font-size:15px;font-weight:700;white-space:nowrap;}
 .expense-amount.income-amt{color:var(--blue);}
-.delete-btn{background:none;border:none;font-size:16px;cursor:pointer;padding:4px 6px;opacity:0.4;flex-shrink:0;}
+.delete-btn{background:none;border:none;font-size:16px;cursor:pointer;padding:4px 6px;opacity:0.7;flex-shrink:0;color:var(--muted);}
 .delete-btn:active{opacity:1;}
-.edit-btn{background:none;border:none;font-size:15px;cursor:pointer;padding:4px 6px;opacity:0.4;flex-shrink:0;}
+.edit-btn{background:none;border:none;font-size:15px;cursor:pointer;padding:4px 6px;opacity:0.7;flex-shrink:0;color:var(--muted);}
 .edit-btn:active{opacity:1;}
+@media (prefers-color-scheme: dark){.delete-btn,.edit-btn{opacity:0.85;}}
 .split-bar{display:flex;height:8px;border-radius:4px;overflow:hidden;margin:10px 0 4px;}
 .split-bar-personal{background:var(--blue);}
 .split-bar-business{background:var(--orange);}
@@ -247,7 +248,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans
 .pm-add button{background:var(--green);border:none;color:var(--on-accent);padding:10px 16px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;}
 .pm-empty{font-size:13px;color:var(--muted);text-align:center;padding:12px;}
 
-/* Desktop layout â widen on big screens */
+/* Desktop layout — widen on big screens */
 @media (min-width: 900px) {
   body{max-width:700px;}
   .bottom-nav{max-width:700px;}
@@ -270,7 +271,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans
 .autocomplete-item .ac-match{color:var(--green);font-weight:600;}
 .autocomplete-empty{padding:8px 12px;font-size:12px;color:var(--muted);}
 
-/* Narrow screens (â¤ 380px) â Z Fold cover screen, small Androids, older iPhones */
+/* Narrow screens (≤ 380px) — Z Fold cover screen, small Androids, older iPhones */
 @media (max-width: 380px) {
   body{max-width:100%;}
   .header{padding:14px 12px 6px;}
@@ -292,7 +293,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans
   .pin-key{width:60px;height:60px;font-size:20px;}
 }
 
-/* iPhone width range â Month tab summary tiles need to fit 3 across cleanly */
+/* iPhone width range — Month tab summary tiles need to fit 3 across cleanly */
 @media (max-width: 430px) {
   .net-row{gap:6px;margin-bottom:10px;}
   .net-card{padding:8px 4px;}
@@ -358,7 +359,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans
   </div>
   <div id="form-expense">
     <div class="form-group"><label>Amount</label><div class="amount-prefix"><span class="currency-label">KES</span><input type="number" id="f-amount" placeholder="0" min="0" step="1"/></div></div>
-    <div class="form-group"><label>Description</label><div class="autocomplete-wrap"><input type="text" id="f-desc" placeholder="What was it for?" autocomplete="off" oninput="renderDescAutocomplete('f-desc')" onfocus="renderDescAutocomplete('f-desc')" onblur="_hideAutocomplete('f-desc')" /><div class="autocomplete-list" id="f-desc-list" style="display:none"></div></div></div>
+    <div class="form-group"><label>Description</label><div class="autocomplete-wrap"><input type="text" id="f-desc" name="description" inputmode="text" autocomplete="off" data-form-type="other" data-1p-ignore="true" data-lpignore="true" placeholder="What was it for?" oninput="renderDescAutocomplete('f-desc')" onfocus="renderDescAutocomplete('f-desc')" onblur="_hideAutocomplete('f-desc')" /><div class="autocomplete-list" id="f-desc-list" style="display:none"></div></div></div>
     <div class="form-group"><label>Category</label>
       <div class="cat-picker" id="f-category-picker"><button type="button" class="cat-picker-trigger" onclick="toggleCatPicker('f-category')"><span class="cat-picker-display"><svg class="cat-icon-svg" id="f-category-icon" aria-hidden="true"><use href="#icon-cat-groceries"/></svg><span id="f-category-label">Groceries</span></span><svg class="cat-picker-chevron" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button><input type="hidden" id="f-category" value="Groceries"/><div class="cat-picker-menu" id="f-category-menu"><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Charity/Gift','icon-cat-charitygift')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-charitygift"/></svg><span>Charity/Gift</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Eating Out','icon-cat-eatingout')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-eatingout"/></svg><span>Eating Out</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Entertainment','icon-cat-entertainment')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-entertainment"/></svg><span>Entertainment</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Food Delivery','icon-cat-fooddelivery')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-fooddelivery"/></svg><span>Food Delivery</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Groceries','icon-cat-groceries')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-groceries"/></svg><span>Groceries</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Loans','icon-cat-loans')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-loans"/></svg><span>Loans</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Personal Care','icon-cat-personalcare')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-personalcare"/></svg><span>Personal Care</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Salaries','icon-cat-salaries')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-salaries"/></svg><span>Salaries</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Subscriptions','icon-cat-subscriptions')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-subscriptions"/></svg><span>Subscriptions</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Transport','icon-cat-transport')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-transport"/></svg><span>Transport</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Utilities','icon-cat-utilities')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-utilities"/></svg><span>Utilities</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Other','icon-cat-other')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-other"/></svg><span>Other</span></button></div></div>
     </div>
@@ -432,7 +433,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans
   <button class="nav-btn active" id="nav-add" onclick="switchTab('add')"><svg class="icon-svg" aria-hidden="true"><use href="#icon-add"/></svg>Add</button>
   <button class="nav-btn" id="nav-month" onclick="switchTab('month')"><svg class="icon-svg" aria-hidden="true"><use href="#icon-month"/></svg>Month</button>
   <button class="nav-btn" id="nav-loans" onclick="switchTab('loans')"><svg class="icon-svg" aria-hidden="true"><use href="#icon-loans"/></svg>Loans</button>
-  <button class="nav-btn" id="nav-debts" onclick="switchTab('debts')"><svg class="icon-svg" aria-hidden="true"><use href="#icon-debts"/></svg>Debts</button>
+  <button class="nav-btn" id="nav-debts" style="display:none" onclick="switchTab('debts')"><svg class="icon-svg" aria-hidden="true"><use href="#icon-debts"/></svg>Debts</button>
   <button class="nav-btn" id="nav-recent" onclick="switchTab('recent')"><svg class="icon-svg" aria-hidden="true"><use href="#icon-recent"/></svg>Recent</button>
 </nav>
 
@@ -457,7 +458,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans
     <!-- Edit Expense form -->
     <div id="edit-form-expense">
       <div class="form-group"><label>Amount</label><div class="amount-prefix"><span class="currency-label">KES</span><input type="number" id="e-amount" placeholder="0" min="0" step="1"/></div></div>
-      <div class="form-group"><label>Description</label><div class="autocomplete-wrap"><input type="text" id="e-desc" placeholder="What was it for?" autocomplete="off" oninput="renderDescAutocomplete('e-desc')" onfocus="renderDescAutocomplete('e-desc')" onblur="_hideAutocomplete('e-desc')" /><div class="autocomplete-list" id="e-desc-list" style="display:none"></div></div></div>
+      <div class="form-group"><label>Description</label><div class="autocomplete-wrap"><input type="text" id="e-desc" name="description" inputmode="text" autocomplete="off" data-form-type="other" data-1p-ignore="true" data-lpignore="true" placeholder="What was it for?" oninput="renderDescAutocomplete('e-desc')" onfocus="renderDescAutocomplete('e-desc')" onblur="_hideAutocomplete('e-desc')" /><div class="autocomplete-list" id="e-desc-list" style="display:none"></div></div></div>
       <div class="form-group"><label>Category</label>
         <div class="cat-picker" id="e-category-picker"><button type="button" class="cat-picker-trigger" onclick="toggleCatPicker('e-category')"><span class="cat-picker-display"><svg class="cat-icon-svg" id="e-category-icon" aria-hidden="true"><use href="#icon-cat-groceries"/></svg><span id="e-category-label">Groceries</span></span><svg class="cat-picker-chevron" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button><input type="hidden" id="e-category" value="Groceries"/><div class="cat-picker-menu" id="e-category-menu"><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Charity/Gift','icon-cat-charitygift')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-charitygift"/></svg><span>Charity/Gift</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Eating Out','icon-cat-eatingout')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-eatingout"/></svg><span>Eating Out</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Entertainment','icon-cat-entertainment')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-entertainment"/></svg><span>Entertainment</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Food Delivery','icon-cat-fooddelivery')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-fooddelivery"/></svg><span>Food Delivery</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Groceries','icon-cat-groceries')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-groceries"/></svg><span>Groceries</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Loans','icon-cat-loans')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-loans"/></svg><span>Loans</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Personal Care','icon-cat-personalcare')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-personalcare"/></svg><span>Personal Care</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Salaries','icon-cat-salaries')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-salaries"/></svg><span>Salaries</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Subscriptions','icon-cat-subscriptions')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-subscriptions"/></svg><span>Subscriptions</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Transport','icon-cat-transport')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-transport"/></svg><span>Transport</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Utilities','icon-cat-utilities')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-utilities"/></svg><span>Utilities</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Other','icon-cat-other')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-other"/></svg><span>Other</span></button></div></div>
       </div>
@@ -648,7 +649,12 @@ async function saveEditExpense() {
   var notes = document.getElementById('e-notes').value.trim();
   if (!amount || parseFloat(amount) <= 0) { showToast('Enter an amount','var(--red)'); return; }
   if (!desc) { showToast('Add a description','var(--red)'); return; }
-  await db.from('expenses').update({ amount: parseFloat(amount), description: desc, category, type: selectedEditType, payment: selectedEditPayment, date, notes }).eq('id', editingExpenseId);
+  var result = await saveWithRetry(function(){ return db.from('expenses').update({ amount: parseFloat(amount), description: desc, category, type: selectedEditType, payment: selectedEditPayment, date, notes }).eq('id', editingExpenseId); });
+  if (result.error) {
+    showToast('Error: ' + result.error.message, 'var(--red)');
+    document.getElementById('edit-overlay').style.display = 'none';
+    return;
+  }
   showToast('Updated');
   document.getElementById('edit-overlay').style.display = 'none';
   var savedCat = _editCat;
@@ -665,7 +671,12 @@ async function saveEditIncome() {
   var notes = document.getElementById('ei-notes').value.trim();
   if (!amount || parseFloat(amount) <= 0) { showToast('Enter an amount','var(--red)'); return; }
   if (!source) { showToast('Add a source','var(--red)'); return; }
-  await db.from('income').update({ amount: parseFloat(amount), source, type: selectedEditIncomeType, date, notes }).eq('id', editingIncomeId);
+  var result = await saveWithRetry(function(){ return db.from('income').update({ amount: parseFloat(amount), source, type: selectedEditIncomeType, date, notes }).eq('id', editingIncomeId); });
+  if (result.error) {
+    showToast('Error: ' + result.error.message, 'var(--red)');
+    document.getElementById('edit-overlay').style.display = 'none';
+    return;
+  }
   showToast('Updated');
   document.getElementById('edit-overlay').style.display = 'none';
   editingIncomeId = null;
@@ -688,6 +699,107 @@ function showToast(msg, color) {
   t.style.color = color ? '#fff' : '#000';
   t.classList.add('show');
   setTimeout(function(){ t.classList.remove('show'); }, 2500);
+}
+
+// Wrap a Supabase mutation with timeout + auto-retry on stale JWT.
+// First attempt times out at `ms` ms. If it timed out (not a real error), we silently
+// refresh the auth session and try ONCE more. This handles the common case where the
+// JWT silently expired and the client got stuck refreshing a bad token. The user sees
+// "Saving…" → "Reconnecting…" → success, with no manual retry needed.
+//
+// Pass `makeMutation` as a function returning a Promise so we can re-invoke it for
+// the retry. `opts.btn` is the submit button — we update its label to "Reconnecting…"
+// during the retry so the user can see something is happening.
+async function saveWithRetry(makeMutation, opts) {
+  opts = opts || {};
+  var ms = opts.ms || 12000;
+  var btn = opts.btn || null;
+  var btnRetryLabel = opts.btnRetryLabel || 'Reconnecting…';
+
+  function _race(p, msg) {
+    return Promise.race([
+      p,
+      new Promise(function(resolve){
+        setTimeout(function(){ resolve({ error: { message: msg }, _timedOut: true }); }, ms);
+      })
+    ]);
+  }
+
+  var first = await _race(makeMutation(), "Couldn't save — retrying with a fresh session");
+  if (!first.error) return first;
+  if (!first._timedOut) return first; // real Supabase error — don't auto-retry
+
+  // Timed out — force a fresh session and retry once.
+  console.warn('[save-retry] first attempt timed out — refreshing JWT and retrying');
+  if (btn) btn.textContent = btnRetryLabel;
+  try {
+    await Promise.race([
+      db.auth.refreshSession(),
+      new Promise(function(_, reject){ setTimeout(function(){ reject(new Error('refresh timeout')); }, 5000); })
+    ]);
+  } catch(e) {
+    console.warn('[save-retry] refreshSession failed:', e && e.message);
+  }
+  var second = await _race(makeMutation(), "Couldn't save — check your connection and try again");
+  return second;
+}
+
+// Backwards-compat wrapper — keeps the older "wrap a Promise" style callable but routes
+// through the new retry logic. Internally normalises a Promise into a function for retry.
+function saveWithTimeout(mutationPromise, ms) {
+  return saveWithRetry(function(){ return mutationPromise; }, { ms: ms });
+}
+function _onTimedOutSave(result) { /* no-op now — retry is built into saveWithRetry */ }
+
+// If a content area is still showing "Loading..." after `ms`, swap it for a softer prompt
+// the user can tap if it really feels stuck. 15s is forgiving enough that normal slow
+// loads complete invisibly; only actually-stuck cases see this message.
+function watchForLoadingStuck(elementId, retryFnName, ms) {
+  ms = ms || 15000;
+  setTimeout(function() {
+    var el = document.getElementById(elementId);
+    if (!el) return;
+    var txt = (el.textContent || '').trim();
+    if (txt === 'Loading...' || txt === 'Loading') {
+      console.warn('[loading-slow]', elementId, 'still loading after', ms, 'ms — offering manual reconnect');
+      el.innerHTML = '<div class="empty"><div style="margin-bottom:10px;color:var(--muted);font-size:13px">Still loading… tap if stuck</div><button onclick="hardRetry(\'' + retryFnName + '\',\'' + elementId + '\')" style="background:none;color:var(--green);border:1px solid var(--green);padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">Reconnect</button></div>';
+    }
+  }, ms);
+}
+
+// Real retry — force a fresh Supabase session before re-running the loader.
+// The most common cause of a stuck "Loading..." is a stale JWT (token refresh
+// silently failed during a flaky network moment). The Supabase client keeps
+// trying to use the bad token on every subsequent query, so a plain retry
+// just stalls again. refreshSession() forces a clean handshake; if that itself
+// fails we know the network is genuinely down and surface a clearer message.
+async function hardRetry(loaderName, elementId) {
+  var el = elementId ? document.getElementById(elementId) : null;
+  if (el) el.innerHTML = '<div class="empty">Reconnecting...</div>';
+  var refreshOk = false;
+  try {
+    var refreshResult = await Promise.race([
+      db.auth.refreshSession(),
+      new Promise(function(_, reject){ setTimeout(function(){ reject(new Error('refresh timeout')); }, 5000); })
+    ]);
+    refreshOk = !(refreshResult && refreshResult.error);
+    if (refreshResult && refreshResult.data && refreshResult.data.user) {
+      currentUserId = refreshResult.data.user.id;
+    }
+  } catch(e) {
+    console.warn('[hardRetry] refreshSession failed:', e && e.message);
+    refreshOk = false;
+  }
+  if (!refreshOk) {
+    if (el) {
+      el.innerHTML = '<div class="empty"><div style="margin-bottom:10px;color:var(--muted)">No connection &mdash; check your WiFi or mobile data</div><button onclick="hardRetry(\'' + loaderName + '\',\'' + elementId + '\')" style="background:var(--green);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">Try again</button></div>';
+    }
+    return;
+  }
+  // Session is fresh — call the original loader.
+  if (typeof window[loaderName] === 'function') {
+    try { window[loaderName](); } catch(e){ console.error('[hardRetry] loader threw:', e); }
+  }
 }
 
 var currentSettings = { currency: 'KES', locale: 'en-KE', name: '' };
@@ -714,7 +826,7 @@ function fmtNumber(n){
   try { return Math.round(n).toLocaleString(locale); }
   catch(e){ return Math.round(n).toLocaleString(); }
 }
-// Backwards-compat alias â existing call sites still work
+// Backwards-compat alias — existing call sites still work
 function fmtKES(n){ return fmtMoney(n); }
 function detectDefaults(){
   var lang = navigator.language || 'en-KE';
@@ -762,7 +874,7 @@ function applyHeaderGreeting(){
     ? MONTHS[(new Date().getMonth())] + ' ' + new Date().getFullYear()
     : '';
   if (name) {
-    dateEl.innerHTML = '<span style="color:var(--green);font-weight:600">Hey, ' + escapeHtml(name) + '</span> Â· ' + monthLabel;
+    dateEl.innerHTML = '<span style="color:var(--green);font-weight:600">Hey, ' + escapeHtml(name) + '</span> · ' + monthLabel;
   } else {
     dateEl.textContent = monthLabel;
   }
@@ -821,9 +933,9 @@ async function submitExpense() {
   if (!desc) { showToast('Add a description','var(--red)'); return; }
   var btn = document.getElementById('submit-expense-btn');
   btn.disabled = true; btn.textContent = 'Saving...';
-  var { error } = await db.from('expenses').insert({ user_id: currentUserId, date, amount: parseFloat(amount), description: desc, category, type: selectedType, payment: selectedPayment, notes });
+  var result = await saveWithRetry(function(){ return db.from('expenses').insert({ user_id: currentUserId, date, amount: parseFloat(amount), description: desc, category, type: selectedType, payment: selectedPayment, notes }); }, { btn: btn });
   btn.disabled = false; btn.textContent = 'Log Expense';
-  if (error) { showToast('Error: ' + error.message,'var(--red)'); return; }
+  if (result.error) { showToast('Error: ' + result.error.message,'var(--red)'); return; }
   showToast('Expense logged');
   ['f-amount','f-desc','f-notes'].forEach(function(id){ document.getElementById(id).value = ''; });
   loadDescriptionHistory();
@@ -836,9 +948,9 @@ async function submitIncome() {
   if (!source) { showToast('Add a source','var(--red)'); return; }
   var btn = document.getElementById('submit-income-btn');
   btn.disabled = true; btn.textContent = 'Saving...';
-  var { error } = await db.from('income').insert({ user_id: currentUserId, date, amount: parseFloat(amount), source, notes, type: selectedIncomeType });
+  var result = await saveWithRetry(function(){ return db.from('income').insert({ user_id: currentUserId, date, amount: parseFloat(amount), source, notes, type: selectedIncomeType }); }, { btn: btn });
   btn.disabled = false; btn.textContent = 'Log Income';
-  if (error) { showToast('Error: ' + error.message,'var(--red)'); return; }
+  if (result.error) { showToast('Error: ' + result.error.message,'var(--red)'); return; }
   showToast('Income logged');
   ['i-amount','i-source','i-notes'].forEach(function(id){ document.getElementById(id).value = ''; });
   selectedIncomeType = 'Personal';
@@ -856,9 +968,18 @@ async function submitLoan() {
   if (!person) { showToast('Add a person','var(--red)'); return; }
   var btn = document.getElementById('submit-loan-btn');
   btn.disabled = true; btn.textContent = 'Saving...';
-  await db.from('loans').insert({ user_id: currentUserId, date, amount: parseFloat(amount), person, purpose, notes, status: 'outstanding' });
-  await db.from('expenses').insert({ user_id: currentUserId, date, amount: parseFloat(amount), description: 'Loan to ' + person + (purpose ? ' - ' + purpose : ''), category: 'Loans', type: 'Business', payment: selectedPayment, notes });
+  var loanResult = await saveWithRetry(function(){ return db.from('loans').insert({ user_id: currentUserId, date, amount: parseFloat(amount), person, purpose, notes, status: 'outstanding' }); }, { btn: btn });
+  if (loanResult.error) {
+    btn.disabled = false; btn.textContent = 'Log Loan';
+    showToast('Error: ' + loanResult.error.message, 'var(--red)');
+    return;
+  }
+  var expResult = await saveWithRetry(function(){ return db.from('expenses').insert({ user_id: currentUserId, date, amount: parseFloat(amount), description: 'Loan to ' + person + (purpose ? ' - ' + purpose : ''), category: 'Loans', type: 'Business', payment: selectedPayment, notes }); }, { btn: btn });
   btn.disabled = false; btn.textContent = 'Log Loan';
+  if (expResult.error) {
+    showToast('Loan saved, but linked expense failed: ' + expResult.error.message, 'var(--red)');
+    return;
+  }
   showToast('Loan logged');
   ['l-amount','l-person','l-purpose','l-notes'].forEach(function(id){ document.getElementById(id).value = ''; });
 }
@@ -873,6 +994,7 @@ function changeMonth(dir) {
 async function loadMonthSummary() {
   document.getElementById('month-label').textContent = MONTHS[currentMonth-1] + ' ' + currentYear;
   document.getElementById('month-content').innerHTML = '<div class="empty">Loading...</div>';
+  watchForLoadingStuck('month-content', 'loadMonthSummary');
   var start = currentYear + '-' + String(currentMonth).padStart(2,'0') + '-01';
   var lastDay = new Date(currentYear, currentMonth, 0).getDate();
   var end = currentYear + '-' + String(currentMonth).padStart(2,'0') + '-' + String(lastDay).padStart(2,'0');
@@ -941,7 +1063,7 @@ async function loadMonthSummary() {
         var icon = CAT_ICONS[m.cat]||'<svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-other"/></svg>';
         html += '<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0">';
         html += '<span style="color:var(--muted)">'+icon+' '+m.cat+'</span>';
-        html += '<span style="color:'+(up?'var(--red)':'var(--green)')+';">'+(up?'â²':'â¼')+' '+fmtKES(Math.abs(m.diff))+'</span>';
+        html += '<span style="color:'+(up?'var(--red)':'var(--green)')+';">'+(up?'▲':'▼')+' '+fmtKES(Math.abs(m.diff))+'</span>';
         html += '</div>';
       });
       html += '</div>';
@@ -1027,6 +1149,7 @@ async function deleteDrillExpense(id, cat) {
 
 async function loadRecent() {
   document.getElementById('recent-content').innerHTML = '<div class="empty">Loading...</div>';
+  watchForLoadingStuck('recent-content', 'loadRecent');
   var [{ data: expenses }, { data: incomeData }] = await Promise.all([
     db.from('expenses').select('*').order('date',{ascending:false}).order('created_at',{ascending:false}).limit(15),
     db.from('income').select('*').order('date',{ascending:false}).order('created_at',{ascending:false}).limit(5)
@@ -1067,6 +1190,7 @@ async function deleteIncome(id) {
 
 async function loadLoans() {
   document.getElementById('loans-content').innerHTML = '<div class="empty">Loading...</div>';
+  watchForLoadingStuck('loans-content', 'loadLoans');
   var { data } = await db.from('loans').select('*').order('status').order('date',{ascending:false});
   if (!data||data.length===0) { document.getElementById('loans-content').innerHTML='<div class="empty">No loans recorded</div>'; return; }
   var outstanding=data.filter(function(l){ return l.status==='outstanding'; });
@@ -1094,12 +1218,13 @@ async function loadLoans() {
   document.getElementById('loans-content').innerHTML = html;
 }
 
-// ââ DEBTS ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── DEBTS ────────────────────────────────────────────────────────────────────
 var GBP_KES_RATE = 165; // update manually when rate changes
 
-// Debts are stored in Supabase â no localStorage needed
+// Debts are stored in Supabase — no localStorage needed
 async function loadDebts() {
   document.getElementById('debts-content').innerHTML = '<div class="card" style="color:var(--muted);text-align:center">Loading...</div>';
+  watchForLoadingStuck('debts-content', 'loadDebts');
   var { data: cards, error } = await db.from('debts').select('*').order('id');
   if (error || !cards) {
     document.getElementById('debts-content').innerHTML = '<div class="card" style="color:var(--red)">Failed to load debt data. Check Supabase connection.</div>';
@@ -1130,7 +1255,7 @@ async function loadDebts() {
   // Total KES equivalent
   html += '<div class="card"><div class="stat-row"><span class="stat-label">Total debt (KES equiv.)</span><span class="stat-value" style="color:var(--red)">' + fmtKES(Math.round(totalKESEquiv)) + '</span></div>';
   html += '<div class="stat-row"><span class="stat-label">Annual interest cost</span><span class="stat-value" style="color:var(--orange)">' + fmtKES(Math.round(annualInterest)) + '</span></div>';
-  html += '<div style="font-size:11px;color:var(--muted);margin-top:6px">GBP rate used: 1 GBP = ' + GBP_KES_RATE + ' KES Â· Last updated: ' + (cards[0] ? (cards[0].updated_at || '').substring(0,10) : 'â') + '</div></div>';
+  html += '<div style="font-size:11px;color:var(--muted);margin-top:6px">GBP rate used: 1 GBP = ' + GBP_KES_RATE + ' KES · Last updated: ' + (cards[0] ? (cards[0].updated_at || '').substring(0,10) : '–') + '</div></div>';
 
   // Individual cards
   html += '<div class="section-title">Cards</div>';
@@ -1139,12 +1264,12 @@ async function loadDebts() {
     var monthlyInt = bal * (c.apr / 100) / 12;
     var cleared = bal === 0;
     html += '<div class="card">';
-    html += '<div class="loan-top"><span class="loan-person" style="' + (cleared ? 'color:var(--green)' : '') + '">' + (cleared ? 'â ' : '') + c.name + '</span>';
+    html += '<div class="loan-top"><span class="loan-person" style="' + (cleared ? 'color:var(--green)' : '') + '">' + (cleared ? '✓ ' : '') + c.name + '</span>';
     html += '<span class="loan-amount ' + (cleared ? 'settled-amt' : '') + '">' + (c.currency === 'GBP' ? 'GBP ' + bal.toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}) : fmtKES(bal)) + '</span></div>';
     if (!cleared) {
-      html += '<div class="loan-meta">APR ' + c.apr + '% Â· Monthly interest: ' + (c.currency === 'GBP' ? 'GBP ' + monthlyInt.toFixed(0) : fmtKES(Math.round(monthlyInt))) + '</div>';
+      html += '<div class="loan-meta">APR ' + c.apr + '% · Monthly interest: ' + (c.currency === 'GBP' ? 'GBP ' + monthlyInt.toFixed(0) : fmtKES(Math.round(monthlyInt))) + '</div>';
     } else {
-      html += '<div class="loan-meta" style="color:var(--green)">Cleared ð</div>';
+      html += '<div class="loan-meta" style="color:var(--green)">Cleared 🎉</div>';
     }
     html += '<div class="loan-actions"><button class="settle-btn" style="border-color:var(--blue);color:var(--blue);background:var(--blue-bg)" onclick="editDebtCard(' + c.id + ',\'' + c.name.replace(/'/g,"\\'") + '\',' + bal + ',\'' + c.currency + '\')">Update Balance</button>';
     if (!cleared) html += '<button class="settle-btn" style="margin-left:4px" onclick="clearDebtCard(' + c.id + ',\'' + c.name.replace(/'/g,"\\'") + '\')">Mark Cleared</button>';
@@ -1152,7 +1277,7 @@ async function loadDebts() {
   });
 
   // Rate edit
-  html += '<div class="card"><div style="font-size:12px;color:var(--muted);margin-bottom:8px">GBP â KES conversion rate</div>';
+  html += '<div class="card"><div style="font-size:12px;color:var(--muted);margin-bottom:8px">GBP → KES conversion rate</div>';
   html += '<div style="display:flex;gap:8px;align-items:center"><input type="number" id="gbp-rate-input" value="' + GBP_KES_RATE + '" style="width:100px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--white);padding:6px 10px;font-size:14px">';
   html += '<button class="settle-btn" onclick="updateGBPRate()">Update</button></div></div>';
 
@@ -1174,7 +1299,7 @@ async function clearDebtCard(id, name) {
   if (!confirm('Mark ' + name + ' as fully cleared?')) return;
   var { error } = await db.from('debts').update({ balance: 0, updated_at: new Date().toISOString() }).eq('id', id);
   if (error) { showToast('Update failed', 'var(--red)'); return; }
-  showToast('Card cleared! ð');
+  showToast('Card cleared! 🎉');
   loadDebts();
 }
 
@@ -1185,10 +1310,10 @@ function updateGBPRate() {
   showToast('Rate updated');
   loadDebts();
 }
-// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ─────────────────────────────────────────────────────────────────────────────
 
 async function partialLoanPayment(id, person, outstanding) {
-  var val = prompt(person + ' â outstanding: ' + fmtKES(outstanding) + '\nHow much did they pay back?');
+  var val = prompt(person + ' — outstanding: ' + fmtKES(outstanding) + '\nHow much did they pay back?');
   if (val === null) return;
   var payment = parseFloat(val);
   if (isNaN(payment) || payment <= 0) { showToast('Invalid amount', 'var(--red)'); return; }
@@ -1198,8 +1323,8 @@ async function partialLoanPayment(id, person, outstanding) {
   if (remaining <= 0) {
     // Fully paid via partial payment flow
     await db.from('loans').update({ status: 'settled', settled_date: today, amount: 0 }).eq('id', id);
-    await db.from('income').insert({ user_id: currentUserId, date: today, amount: payment, source: 'Loan Repayment - ' + person, notes: 'Final payment â loan settled' });
-    showToast('Fully settled â income logged');
+    await db.from('income').insert({ user_id: currentUserId, date: today, amount: payment, source: 'Loan Repayment - ' + person, notes: 'Final payment — loan settled' });
+    showToast('Fully settled — income logged');
   } else {
     // Reduce outstanding balance
     await db.from('loans').update({ amount: remaining }).eq('id', id);
@@ -1231,7 +1356,16 @@ init();
 </script>
 
 <script>
-if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js').catch(function(){});});}
+// Service worker disabled: a stale SW was intercepting Supabase API requests on mobile
+// and hanging them, while desktop browsers (with a fresher/no SW) worked fine. Unregister
+// any existing SW on every page load to nuke the cached interceptor for all users.
+// SidePocket is now a regular website — bookmarkable, "Add to Home Screen"-able on iOS,
+// but no longer registers a SW until we ship one that doesn't break API requests.
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.getRegistrations().then(function(regs){
+    regs.forEach(function(r){ r.unregister().then(function(){ console.log('[sw-killer] unregistered stale service worker'); }); });
+  }).catch(function(){});
+}
 
 function getBudgets(){try{return JSON.parse(localStorage.getItem('financeBudgets')||'{}');}catch(e){return {};}}
 
@@ -1283,10 +1417,20 @@ async function exportCSV(){
   showToast('CSV exported');
 }
 
-// ââ Supabase Auth ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Supabase Auth ──────────────────────────────────────────────────────────────
+// Owner-only feature gate. Debts is hidden for everyone except this user_id
+// until we rebuild it as a proper Pro feature. Conrad's account.
+var OWNER_USER_ID = 'c7a09a34-fe15-4f03-adee-6f41fd074172';
+function applyDebtsVisibility() {
+  var btn = document.getElementById('nav-debts');
+  if (!btn) return;
+  btn.style.display = (currentUserId === OWNER_USER_ID) ? '' : 'none';
+}
+
 async function initAuth() {
   var { data: { session } } = await db.auth.getSession();
   currentUserId = session?.user?.id || null;
+  applyDebtsVisibility();
   if (currentUserId) await loadUserSettings();
   if (currentUserId) await loadPaymentMethods();
   if (currentUserId) await loadDescriptionHistory();
@@ -1297,6 +1441,7 @@ async function initAuth() {
   }
   db.auth.onAuthStateChange(async function(event, session) {
     currentUserId = session?.user?.id || null;
+    applyDebtsVisibility();
     if (event === 'SIGNED_OUT') {
       document.getElementById('pin-screen').classList.add('hidden');
       document.getElementById('login-screen').classList.remove('hidden');
@@ -1308,7 +1453,7 @@ async function initAuth() {
     }
     // Always (re)load user state when we have a verified session.
     // This covers the refresh case where getSession() returns before
-    // the JWT is fully available â onAuthStateChange fires after with
+    // the JWT is fully available — onAuthStateChange fires after with
     // SIGNED_IN/TOKEN_REFRESHED/INITIAL_SESSION and we re-fetch.
     if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && currentUserId) {
       try { await loadUserSettings(); } catch(e){}
@@ -1395,7 +1540,7 @@ function renderPaymentButtons(){
 
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 
-// ââ Settings: payment methods management ââââââââââââââââââââââââââââââââââââââ
+// ── Settings: payment methods management ──────────────────────────────────────
 function renderPaymentMethodsSettings(){
   var el = document.getElementById('settings-pm-list'); if (!el) return;
   if (currentPaymentMethods.length === 0) {
@@ -1506,7 +1651,7 @@ function renderDescAutocomplete(inputId){
   if (!input || !list) return;
   var rawQuery = (input.value || '').trim();
   var query = rawQuery.toLowerCase();
-  // No query yet â show top recent items if there's history
+  // No query yet → show top recent items if there's history
   if (!query) {
     if (descriptionHistory.length === 0){ list.style.display = 'none'; return; }
     var recent = descriptionHistory.slice(0, 5);
@@ -1569,26 +1714,27 @@ async function handleLogin() {
 
   if (_authMode === 'signup') {
     if (password.length < 6) { errEl.textContent = 'Password must be at least 6 characters'; return; }
-    btn.disabled = true; btn.textContent = 'Creating accountâ¦';
+    btn.disabled = true; btn.textContent = 'Creating account…';
     var { error: signUpError } = await db.auth.signUp({ email: email, password: password });
     btn.disabled = false; btn.textContent = 'Create Account';
     if (signUpError) { errEl.textContent = signUpError.message; return; }
     return _showSignUpSuccess(email);
   }
 
-  btn.disabled = true; btn.textContent = 'Signing inâ¦';
+  btn.disabled = true; btn.textContent = 'Signing in…';
   var { data: signInData, error } = await db.auth.signInWithPassword({ email: email, password: password });
   if (error) {
     errEl.textContent = error.message === 'Invalid login credentials' ? 'Incorrect email or password' : error.message;
     btn.disabled = false; btn.textContent = 'Sign In';
   } else {
     currentUserId = signInData?.user?.id || null;
+    applyDebtsVisibility();
     if (currentUserId) await loadUserSettings();
     if (currentUserId) await loadPaymentMethods();
     if (currentUserId) await loadDescriptionHistory();
     var welcomeName = (currentSettings && currentSettings.name) ? currentSettings.name.trim() : '';
-    if (welcomeName) showToast('Welcome back, ' + welcomeName + ' ð');
-    else showToast('Welcome back ð');
+    if (welcomeName) showToast('Welcome back, ' + welcomeName + ' 👋');
+    else showToast('Welcome back 👋');
     document.getElementById('login-screen').classList.add('hidden');
     btn.disabled = false; btn.textContent = 'Sign In';
     _showPinScreen();
@@ -1648,7 +1794,7 @@ document.addEventListener('keydown', function(e){
     e.preventDefault();
     pinDel();
   } else if (e.key === 'Enter') {
-    // No-op â pinProcess auto-runs at 4 chars
+    // No-op — pinProcess auto-runs at 4 chars
     e.preventDefault();
   }
 });
@@ -1727,41 +1873,41 @@ initAuth();
       <div>
         <label for="settings-currency">Currency</label>
         <select id="settings-currency">
-          <option value="KES">KES â Kenyan Shilling</option>
-          <option value="USD">USD â US Dollar</option>
-          <option value="EUR">EUR â Euro</option>
-          <option value="GBP">GBP â British Pound</option>
-          <option value="NGN">NGN â Nigerian Naira</option>
-          <option value="ZAR">ZAR â South African Rand</option>
-          <option value="INR">INR â Indian Rupee</option>
-          <option value="AUD">AUD â Australian Dollar</option>
-          <option value="CAD">CAD â Canadian Dollar</option>
-          <option value="JPY">JPY â Japanese Yen</option>
-          <option value="CHF">CHF â Swiss Franc</option>
-          <option value="NZD">NZD â New Zealand Dollar</option>
-          <option value="BRL">BRL â Brazilian Real</option>
-          <option value="MXN">MXN â Mexican Peso</option>
-          <option value="CNY">CNY â Chinese Yuan</option>
+          <option value="KES">KES — Kenyan Shilling</option>
+          <option value="USD">USD — US Dollar</option>
+          <option value="EUR">EUR — Euro</option>
+          <option value="GBP">GBP — British Pound</option>
+          <option value="NGN">NGN — Nigerian Naira</option>
+          <option value="ZAR">ZAR — South African Rand</option>
+          <option value="INR">INR — Indian Rupee</option>
+          <option value="AUD">AUD — Australian Dollar</option>
+          <option value="CAD">CAD — Canadian Dollar</option>
+          <option value="JPY">JPY — Japanese Yen</option>
+          <option value="CHF">CHF — Swiss Franc</option>
+          <option value="NZD">NZD — New Zealand Dollar</option>
+          <option value="BRL">BRL — Brazilian Real</option>
+          <option value="MXN">MXN — Mexican Peso</option>
+          <option value="CNY">CNY — Chinese Yuan</option>
         </select>
       </div>
       <div>
         <label for="settings-locale">Number formatting</label>
         <select id="settings-locale">
           <option value="auto">Match my browser</option>
-          <option value="en-KE">English (Kenya) â 1,234</option>
-          <option value="en-US">English (US) â 1,234</option>
-          <option value="en-GB">English (UK) â 1,234</option>
-          <option value="en-IE">English (Ireland) â 1,234</option>
-          <option value="nl-NL">Dutch (Netherlands) â 1.234</option>
-          <option value="de-DE">German (Germany) â 1.234</option>
-          <option value="fr-FR">French (France) â 1 234</option>
-          <option value="es-ES">Spanish (Spain) â 1.234</option>
-          <option value="pt-PT">Portuguese (Portugal) â 1234</option>
-          <option value="en-ZA">English (South Africa) â 1 234</option>
-          <option value="en-IN">English (India) â 1,234</option>
-          <option value="en-AU">English (Australia) â 1,234</option>
-          <option value="en-CA">English (Canada) â 1,234</option>
-          <option value="ja-JP">Japanese â 1,234</option>
+          <option value="en-KE">English (Kenya) — 1,234</option>
+          <option value="en-US">English (US) — 1,234</option>
+          <option value="en-GB">English (UK) — 1,234</option>
+          <option value="en-IE">English (Ireland) — 1,234</option>
+          <option value="nl-NL">Dutch (Netherlands) — 1.234</option>
+          <option value="de-DE">German (Germany) — 1.234</option>
+          <option value="fr-FR">French (France) — 1 234</option>
+          <option value="es-ES">Spanish (Spain) — 1.234</option>
+          <option value="pt-PT">Portuguese (Portugal) — 1234</option>
+          <option value="en-ZA">English (South Africa) — 1 234</option>
+          <option value="en-IN">English (India) — 1,234</option>
+          <option value="en-AU">English (Australia) — 1,234</option>
+          <option value="en-CA">English (Canada) — 1,234</option>
+          <option value="ja-JP">Japanese — 1,234</option>
         </select>
         <div class="settings-hint">Affects how numbers are grouped and the currency symbol position.</div>
       </div>
