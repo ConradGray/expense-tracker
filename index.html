@@ -740,7 +740,7 @@ async function loadMonthSummary() {
         var icon = CAT_ICONS[m.cat]||'<svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-other"/></svg>';
         html += '<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0">';
         html += '<span style="color:var(--muted)">'+icon+' '+m.cat+'</span>';
-        html += '<span style="color:'+(up?'var(--red)':'var(--green)')+';">'+(up?'▲':'▼')+' '+fmtKES(Math.abs(m.diff))+'</span>';
+        html += '<span style="color:'+(up?'var(--red)':'var(--green)')+';">'+(up?'â²':'â¼')+' '+fmtKES(Math.abs(m.diff))+'</span>';
         html += '</div>';
       });
       html += '</div>';
@@ -891,10 +891,10 @@ async function loadLoans() {
   document.getElementById('loans-content').innerHTML = html;
 }
 
-// ── DEBTS ────────────────────────────────────────────────────────────────────
+// ââ DEBTS ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 var GBP_KES_RATE = 165; // update manually when rate changes
 
-// Debts are stored in Supabase — no localStorage needed
+// Debts are stored in Supabase â no localStorage needed
 async function loadDebts() {
   document.getElementById('debts-content').innerHTML = '<div class="card" style="color:var(--muted);text-align:center">Loading...</div>';
   var { data: cards, error } = await db.from('debts').select('*').order('id');
@@ -927,7 +927,7 @@ async function loadDebts() {
   // Total KES equivalent
   html += '<div class="card"><div class="stat-row"><span class="stat-label">Total debt (KES equiv.)</span><span class="stat-value" style="color:var(--red)">' + fmtKES(Math.round(totalKESEquiv)) + '</span></div>';
   html += '<div class="stat-row"><span class="stat-label">Annual interest cost</span><span class="stat-value" style="color:var(--orange)">' + fmtKES(Math.round(annualInterest)) + '</span></div>';
-  html += '<div style="font-size:11px;color:var(--muted);margin-top:6px">GBP rate used: 1 GBP = ' + GBP_KES_RATE + ' KES · Last updated: ' + (cards[0] ? (cards[0].updated_at || '').substring(0,10) : '–') + '</div></div>';
+  html += '<div style="font-size:11px;color:var(--muted);margin-top:6px">GBP rate used: 1 GBP = ' + GBP_KES_RATE + ' KES Â· Last updated: ' + (cards[0] ? (cards[0].updated_at || '').substring(0,10) : 'â') + '</div></div>';
 
   // Individual cards
   html += '<div class="section-title">Cards</div>';
@@ -936,12 +936,12 @@ async function loadDebts() {
     var monthlyInt = bal * (c.apr / 100) / 12;
     var cleared = bal === 0;
     html += '<div class="card">';
-    html += '<div class="loan-top"><span class="loan-person" style="' + (cleared ? 'color:var(--green)' : '') + '">' + (cleared ? '✓ ' : '') + c.name + '</span>';
+    html += '<div class="loan-top"><span class="loan-person" style="' + (cleared ? 'color:var(--green)' : '') + '">' + (cleared ? 'â ' : '') + c.name + '</span>';
     html += '<span class="loan-amount ' + (cleared ? 'settled-amt' : '') + '">' + (c.currency === 'GBP' ? 'GBP ' + bal.toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}) : fmtKES(bal)) + '</span></div>';
     if (!cleared) {
-      html += '<div class="loan-meta">APR ' + c.apr + '% · Monthly interest: ' + (c.currency === 'GBP' ? 'GBP ' + monthlyInt.toFixed(0) : fmtKES(Math.round(monthlyInt))) + '</div>';
+      html += '<div class="loan-meta">APR ' + c.apr + '% Â· Monthly interest: ' + (c.currency === 'GBP' ? 'GBP ' + monthlyInt.toFixed(0) : fmtKES(Math.round(monthlyInt))) + '</div>';
     } else {
-      html += '<div class="loan-meta" style="color:var(--green)">Cleared 🎉</div>';
+      html += '<div class="loan-meta" style="color:var(--green)">Cleared ð</div>';
     }
     html += '<div class="loan-actions"><button class="settle-btn" style="border-color:var(--blue);color:var(--blue);background:var(--blue-bg)" onclick="editDebtCard(' + c.id + ',\'' + c.name.replace(/'/g,"\\'") + '\',' + bal + ',\'' + c.currency + '\')">Update Balance</button>';
     if (!cleared) html += '<button class="settle-btn" style="margin-left:4px" onclick="clearDebtCard(' + c.id + ',\'' + c.name.replace(/'/g,"\\'") + '\')">Mark Cleared</button>';
@@ -949,7 +949,7 @@ async function loadDebts() {
   });
 
   // Rate edit
-  html += '<div class="card"><div style="font-size:12px;color:var(--muted);margin-bottom:8px">GBP → KES conversion rate</div>';
+  html += '<div class="card"><div style="font-size:12px;color:var(--muted);margin-bottom:8px">GBP â KES conversion rate</div>';
   html += '<div style="display:flex;gap:8px;align-items:center"><input type="number" id="gbp-rate-input" value="' + GBP_KES_RATE + '" style="width:100px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--white);padding:6px 10px;font-size:14px">';
   html += '<button class="settle-btn" onclick="updateGBPRate()">Update</button></div></div>';
 
@@ -971,7 +971,7 @@ async function clearDebtCard(id, name) {
   if (!confirm('Mark ' + name + ' as fully cleared?')) return;
   var { error } = await db.from('debts').update({ balance: 0, updated_at: new Date().toISOString() }).eq('id', id);
   if (error) { showToast('Update failed', 'var(--red)'); return; }
-  showToast('Card cleared! 🎉');
+  showToast('Card cleared! ð');
   loadDebts();
 }
 
@@ -982,10 +982,10 @@ function updateGBPRate() {
   showToast('Rate updated');
   loadDebts();
 }
-// ─────────────────────────────────────────────────────────────────────────────
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
 async function partialLoanPayment(id, person, outstanding) {
-  var val = prompt(person + ' — outstanding: ' + fmtKES(outstanding) + '\nHow much did they pay back?');
+  var val = prompt(person + ' â outstanding: ' + fmtKES(outstanding) + '\nHow much did they pay back?');
   if (val === null) return;
   var payment = parseFloat(val);
   if (isNaN(payment) || payment <= 0) { showToast('Invalid amount', 'var(--red)'); return; }
@@ -995,8 +995,8 @@ async function partialLoanPayment(id, person, outstanding) {
   if (remaining <= 0) {
     // Fully paid via partial payment flow
     await db.from('loans').update({ status: 'settled', settled_date: today, amount: 0 }).eq('id', id);
-    await db.from('income').insert({ date: today, amount: payment, source: 'Loan Repayment - ' + person, notes: 'Final payment — loan settled' });
-    showToast('Fully settled — income logged');
+    await db.from('income').insert({ date: today, amount: payment, source: 'Loan Repayment - ' + person, notes: 'Final payment â loan settled' });
+    showToast('Fully settled â income logged');
   } else {
     // Reduce outstanding balance
     await db.from('loans').update({ amount: remaining }).eq('id', id);
@@ -1081,7 +1081,7 @@ async function exportCSV(){
   showToast('CSV exported');
 }
 
-// ── Supabase Auth ──────────────────────────────────────────────────────────────
+// ââ Supabase Auth ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 async function initAuth() {
   var { data: { session } } = await db.auth.getSession();
   if (session) {
@@ -1106,7 +1106,7 @@ async function handleLogin() {
   var btn = document.getElementById('login-btn');
   var errEl = document.getElementById('login-error');
   if (!email || !password) { errEl.textContent = 'Please enter your email and password'; return; }
-  btn.disabled = true; btn.textContent = 'Signing in…'; errEl.textContent = '';
+  btn.disabled = true; btn.textContent = 'Signing inâ¦'; errEl.textContent = '';
   var { error } = await db.auth.signInWithPassword({ email: email, password: password });
   if (error) {
     errEl.textContent = error.message === 'Invalid login credentials' ? 'Incorrect email or password' : error.message;
@@ -1240,3 +1240,5 @@ document.addEventListener('click',function(e){
 </div>
 </body>
 </html>
+
+<!--BISECT-A-MAY-1-->
