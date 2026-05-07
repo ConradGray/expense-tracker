@@ -925,32 +925,134 @@ async function saveSettings(){
 }
 
 
-async function submitExpense() {
-  var amount = document.getElementById('f-amount').value, desc = document.getElementById('f-desc').value.trim();
-  var category = document.getElementById('f-category').value, date = document.getElementById('f-date').value;
+// =============================================================================
+// OFFLINE-FIRST QUEUE - Stage 1
+// =============================================================================
+// Saves never block on network. Each save:
+//   1. Generates a UUID client-side
+//   2. Goes into a localStorage queue immediately
+//   3. UI updates optimistically - user sees the row right away
+//   4. Background sync drains the queue to Supabase whenever network is alive
+// Network failure is invisible to the user. Hangs become physically impossible.
+// =============================================================================
+
+function _genUuid() {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random() * 16 | 0;
+    var v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+var _PENDING_KEY = 'sidepocket_pending_writes';
+function _getPending() { try { return JSON.parse(localStorage.getItem(_PENDING_KEY) || '[]'); } catch(e) { return []; } }
+function _setPending(list) { try { localStorage.setItem(_PENDING_KEY, JSON.stringify(list)); } catch(e) {} }
+function _enqueueWrite(table, payload) {
+  var list = _getPending();
+  list.push({ queueId: _genUuid(), table: table, payload: payload, queued_at: new Date().toISOString(), attempts: 0 });
+  _setPending(list);
+  return payload.id;
+}
+function _getPendingForUser() {
+  if (!currentUserId) return [];
+  return _getPending().filter(function(e){ return e.payload && e.payload.user_id === currentUserId; });
+}
+function _removeFromQueue(queueId) {
+  _setPending(_getPending().filter(function(e){ return e.queueId !== queueId; }));
+}
+function _pendingRows(table, filterFn) {
+  var rows = _getPendingForUser().filter(function(e){ return e.table === table; })
+    .map(function(e){ return Object.assign({}, e.payload, { _unsynced: true }); });
+  return filterFn ? rows.filter(filterFn) : rows;
+}
+
+var _isSyncing = false;
+async function syncPendingWrites() {
+  if (_isSyncing) return;
+  if (!currentUserId) return;
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
+  _isSyncing = true;
+  try {
+    var list = _getPendingForUser();
+    for (var i = 0; i < list.length; i++) {
+      var entry = list[i];
+      try {
+        var { error } = await db.from(entry.table).upsert(entry.payload, { onConflict: 'id' });
+        if (!error) {
+          _removeFromQueue(entry.queueId);
+          console.log('[sync] synced', entry.table, entry.payload.id);
+        } else {
+          var all = _getPending();
+          var idx = -1;
+          for (var k = 0; k < all.length; k++) if (all[k].queueId === entry.queueId) { idx = k; break; }
+          if (idx !== -1) { all[idx].attempts++; _setPending(all); }
+          console.warn('[sync] error syncing', entry.queueId, error.message || error);
+          if (all[idx] && all[idx].attempts >= 10) {
+            console.error('[sync] giving up after 10 attempts:', entry);
+            _removeFromQueue(entry.queueId);
+          }
+        }
+      } catch(e) {
+        console.warn('[sync] network error, will retry', e && e.message);
+        break;
+      }
+    }
+  } finally {
+    _isSyncing = false;
+    refreshOfflineIndicator();
+  }
+}
+
+function refreshOfflineIndicator() {
+  var n = _getPendingForUser().length;
+  var el = document.getElementById('offline-indicator');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'offline-indicator';
+    el.style.cssText = 'position:fixed;bottom:78px;left:50%;transform:translateX(-50%);background:var(--orange-bg);color:var(--orange);border:1px solid var(--orange);padding:5px 12px;border-radius:14px;font-size:11px;font-weight:600;z-index:55;display:none;cursor:pointer;';
+    el.onclick = syncPendingWrites;
+    document.body.appendChild(el);
+  }
+  if (n > 0) {
+    el.textContent = n + ' unsynced - tap to retry';
+    el.style.display = 'block';
+  } else {
+    el.style.display = 'none';
+  }
+}
+
+window.addEventListener('online', function(){ syncPendingWrites(); });
+document.addEventListener('visibilitychange', function() { if (!document.hidden) syncPendingWrites(); });
+
+function submitExpense() {
+  var amount = document.getElementById('f-amount').value;
+  var desc = document.getElementById('f-desc').value.trim();
+  var category = document.getElementById('f-category').value;
+  var date = document.getElementById('f-date').value;
   var notes = document.getElementById('f-notes').value.trim();
   if (!amount || parseFloat(amount) <= 0) { showToast('Enter an amount','var(--red)'); return; }
   if (!desc) { showToast('Add a description','var(--red)'); return; }
-  var btn = document.getElementById('submit-expense-btn');
-  btn.disabled = true; btn.textContent = 'Saving...';
-  var result = await saveWithRetry(function(){ return db.from('expenses').insert({ user_id: currentUserId, date, amount: parseFloat(amount), description: desc, category, type: selectedType, payment: selectedPayment, notes }); }, { btn: btn });
-  btn.disabled = false; btn.textContent = 'Log Expense';
-  if (result.error) { showToast('Error: ' + result.error.message,'var(--red)'); return; }
+  if (!currentUserId) { showToast('Not signed in', 'var(--red)'); return; }
+  var payload = { id: _genUuid(), user_id: currentUserId, date: date, amount: parseFloat(amount), description: desc, category: category, type: selectedType, payment: selectedPayment, notes: notes, created_at: new Date().toISOString() };
+  _enqueueWrite('expenses', payload);
   showToast('Expense logged');
   ['f-amount','f-desc','f-notes'].forEach(function(id){ document.getElementById(id).value = ''; });
   loadDescriptionHistory();
+  refreshOfflineIndicator();
+  syncPendingWrites();
 }
 
-async function submitIncome() {
-  var amount = document.getElementById('i-amount').value, source = document.getElementById('i-source').value.trim();
-  var date = document.getElementById('i-date').value, notes = document.getElementById('i-notes').value.trim();
+function submitIncome() {
+  var amount = document.getElementById('i-amount').value;
+  var source = document.getElementById('i-source').value.trim();
+  var date = document.getElementById('i-date').value;
+  var notes = document.getElementById('i-notes').value.trim();
   if (!amount || parseFloat(amount) <= 0) { showToast('Enter an amount','var(--red)'); return; }
   if (!source) { showToast('Add a source','var(--red)'); return; }
-  var btn = document.getElementById('submit-income-btn');
-  btn.disabled = true; btn.textContent = 'Saving...';
-  var result = await saveWithRetry(function(){ return db.from('income').insert({ user_id: currentUserId, date, amount: parseFloat(amount), source, notes, type: selectedIncomeType }); }, { btn: btn });
-  btn.disabled = false; btn.textContent = 'Log Income';
-  if (result.error) { showToast('Error: ' + result.error.message,'var(--red)'); return; }
+  if (!currentUserId) { showToast('Not signed in', 'var(--red)'); return; }
+  var payload = { id: _genUuid(), user_id: currentUserId, date: date, amount: parseFloat(amount), source: source, notes: notes, type: selectedIncomeType, created_at: new Date().toISOString() };
+  _enqueueWrite('income', payload);
   showToast('Income logged');
   ['i-amount','i-source','i-notes'].forEach(function(id){ document.getElementById(id).value = ''; });
   selectedIncomeType = 'Personal';
@@ -958,30 +1060,27 @@ async function submitIncome() {
     btn.classList.remove('active-personal','active-business');
     if (btn.dataset.val === 'Personal') btn.classList.add('active-personal');
   });
+  refreshOfflineIndicator();
+  syncPendingWrites();
 }
 
-async function submitLoan() {
-  var amount = document.getElementById('l-amount').value, person = document.getElementById('l-person').value.trim();
-  var purpose = document.getElementById('l-purpose').value.trim(), date = document.getElementById('l-date').value;
+function submitLoan() {
+  var amount = document.getElementById('l-amount').value;
+  var person = document.getElementById('l-person').value.trim();
+  var purpose = document.getElementById('l-purpose').value.trim();
+  var date = document.getElementById('l-date').value;
   var notes = document.getElementById('l-notes').value.trim();
   if (!amount || parseFloat(amount) <= 0) { showToast('Enter an amount','var(--red)'); return; }
   if (!person) { showToast('Add a person','var(--red)'); return; }
-  var btn = document.getElementById('submit-loan-btn');
-  btn.disabled = true; btn.textContent = 'Saving...';
-  var loanResult = await saveWithRetry(function(){ return db.from('loans').insert({ user_id: currentUserId, date, amount: parseFloat(amount), person, purpose, notes, status: 'outstanding' }); }, { btn: btn });
-  if (loanResult.error) {
-    btn.disabled = false; btn.textContent = 'Log Loan';
-    showToast('Error: ' + loanResult.error.message, 'var(--red)');
-    return;
-  }
-  var expResult = await saveWithRetry(function(){ return db.from('expenses').insert({ user_id: currentUserId, date, amount: parseFloat(amount), description: 'Loan to ' + person + (purpose ? ' - ' + purpose : ''), category: 'Loans', type: 'Business', payment: selectedPayment, notes }); }, { btn: btn });
-  btn.disabled = false; btn.textContent = 'Log Loan';
-  if (expResult.error) {
-    showToast('Loan saved, but linked expense failed: ' + expResult.error.message, 'var(--red)');
-    return;
-  }
+  if (!currentUserId) { showToast('Not signed in', 'var(--red)'); return; }
+  var loanPayload = { id: _genUuid(), user_id: currentUserId, date: date, amount: parseFloat(amount), person: person, purpose: purpose, notes: notes, status: 'outstanding', created_at: new Date().toISOString() };
+  var expPayload = { id: _genUuid(), user_id: currentUserId, date: date, amount: parseFloat(amount), description: 'Loan to ' + person + (purpose ? ' - ' + purpose : ''), category: 'Loans', type: 'Business', payment: selectedPayment, notes: notes, created_at: new Date().toISOString() };
+  _enqueueWrite('loans', loanPayload);
+  _enqueueWrite('expenses', expPayload);
   showToast('Loan logged');
   ['l-amount','l-person','l-purpose','l-notes'].forEach(function(id){ document.getElementById(id).value = ''; });
+  refreshOfflineIndicator();
+  syncPendingWrites();
 }
 
 function changeMonth(dir) {
@@ -1016,6 +1115,10 @@ async function loadMonthSummary() {
     incQ,
     db.from('expenses').select('amount,category').gte('date',prevStart).lte('date',prevEnd)
   ]);
+  var matchTypeFilter = function(t) { if (currentTypeFilter === 'personal') return t === 'Personal'; if (currentTypeFilter === 'business') return t === 'Business'; return true; };
+  expenses = (expenses || []).concat(_pendingRows('expenses', function(r){ return r.date >= start && r.date <= end && matchTypeFilter(r.type); }));
+  incomeData = (incomeData || []).concat(_pendingRows('income', function(r){ return r.date >= start && r.date <= end && matchTypeFilter(r.type); }));
+  syncPendingWrites();
   var budgets = getBudgets();
   var totalExp = 0, totalInc = 0, categories = {}, byType = {Personal:0,Business:0}, byPayment = {};
   var byIncomeType = {Personal:0,Business:0};
@@ -1154,6 +1257,9 @@ async function loadRecent() {
     db.from('expenses').select('*').order('date',{ascending:false}).order('created_at',{ascending:false}).limit(15),
     db.from('income').select('*').order('date',{ascending:false}).order('created_at',{ascending:false}).limit(5)
   ]);
+  expenses = (expenses || []).concat(_pendingRows('expenses'));
+  incomeData = (incomeData || []).concat(_pendingRows('income'));
+  syncPendingWrites();
   var combined = [];
   (expenses||[]).forEach(function(e){ combined.push(Object.assign({},e,{_type:'expense'})); });
   (incomeData||[]).forEach(function(i){ combined.push(Object.assign({},i,{_type:'income'})); });
@@ -1192,6 +1298,8 @@ async function loadLoans() {
   document.getElementById('loans-content').innerHTML = '<div class="empty">Loading...</div>';
   watchForLoadingStuck('loans-content', 'loadLoans');
   var { data } = await db.from('loans').select('*').order('status').order('date',{ascending:false});
+  data = (data || []).concat(_pendingRows('loans'));
+  syncPendingWrites();
   if (!data||data.length===0) { document.getElementById('loans-content').innerHTML='<div class="empty">No loans recorded</div>'; return; }
   var outstanding=data.filter(function(l){ return l.status==='outstanding'; });
   var settled=data.filter(function(l){ return l.status==='settled'; });
@@ -1460,6 +1568,8 @@ async function initAuth() {
   currentUserId = session?.user?.id || null;
   applyDebtsVisibility();
   if (currentUserId) startSessionHeartbeat();
+  if (currentUserId) refreshOfflineIndicator();
+  if (currentUserId) syncPendingWrites();
   if (currentUserId) await loadUserSettings();
   if (currentUserId) await loadPaymentMethods();
   if (currentUserId) await loadDescriptionHistory();
@@ -1487,6 +1597,8 @@ async function initAuth() {
     // SIGNED_IN/TOKEN_REFRESHED/INITIAL_SESSION and we re-fetch.
     if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && currentUserId) {
       startSessionHeartbeat();
+      refreshOfflineIndicator();
+      syncPendingWrites();
       try { await loadUserSettings(); } catch(e){}
       try { await loadPaymentMethods(); } catch(e){}
       try { await loadDescriptionHistory(); } catch(e){}
@@ -1761,6 +1873,8 @@ async function handleLogin() {
     currentUserId = signInData?.user?.id || null;
     applyDebtsVisibility();
     if (currentUserId) startSessionHeartbeat();
+    if (currentUserId) refreshOfflineIndicator();
+    if (currentUserId) syncPendingWrites();
     if (currentUserId) await loadUserSettings();
     if (currentUserId) await loadPaymentMethods();
     if (currentUserId) await loadDescriptionHistory();
