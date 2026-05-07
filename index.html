@@ -967,6 +967,17 @@ function _pendingRows(table, filterFn) {
   return filterFn ? rows.filter(filterFn) : rows;
 }
 
+// Race a server fetch against a fast timeout. Returns null on timeout/offline so
+// loads can fall back to local-only data immediately rather than waiting 15s.
+function _raceFastTimeout(promise, ms) {
+  ms = ms || 4000;
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return Promise.resolve(null);
+  return Promise.race([
+    promise.catch(function(){ return null; }),
+    new Promise(function(resolve){ setTimeout(function(){ resolve(null); }, ms); })
+  ]);
+}
+
 var _isSyncing = false;
 async function syncPendingWrites() {
   if (_isSyncing) return;
@@ -1110,11 +1121,14 @@ async function loadMonthSummary() {
   var prevLastDay = new Date(prevYear, prevMonth, 0).getDate();
   var prevEnd = prevYear + '-' + String(prevMonth).padStart(2,'0') + '-' + String(prevLastDay).padStart(2,'0');
 
-  var [{ data: expenses }, { data: incomeData }, { data: prevExpenses }] = await Promise.all([
+  var serverData = await _raceFastTimeout(Promise.all([
     expQ,
     incQ,
     db.from('expenses').select('amount,category').gte('date',prevStart).lte('date',prevEnd)
-  ]);
+  ]));
+  var expenses = serverData ? (serverData[0].data || []) : [];
+  var incomeData = serverData ? (serverData[1].data || []) : [];
+  var prevExpenses = serverData ? (serverData[2].data || []) : [];
   var matchTypeFilter = function(t) { if (currentTypeFilter === 'personal') return t === 'Personal'; if (currentTypeFilter === 'business') return t === 'Business'; return true; };
   expenses = (expenses || []).concat(_pendingRows('expenses', function(r){ return r.date >= start && r.date <= end && matchTypeFilter(r.type); }));
   incomeData = (incomeData || []).concat(_pendingRows('income', function(r){ return r.date >= start && r.date <= end && matchTypeFilter(r.type); }));
@@ -1253,10 +1267,12 @@ async function deleteDrillExpense(id, cat) {
 async function loadRecent() {
   document.getElementById('recent-content').innerHTML = '<div class="empty">Loading...</div>';
   watchForLoadingStuck('recent-content', 'loadRecent');
-  var [{ data: expenses }, { data: incomeData }] = await Promise.all([
+  var serverData = await _raceFastTimeout(Promise.all([
     db.from('expenses').select('*').order('date',{ascending:false}).order('created_at',{ascending:false}).limit(15),
     db.from('income').select('*').order('date',{ascending:false}).order('created_at',{ascending:false}).limit(5)
-  ]);
+  ]));
+  var expenses = serverData ? (serverData[0].data || []) : [];
+  var incomeData = serverData ? (serverData[1].data || []) : [];
   expenses = (expenses || []).concat(_pendingRows('expenses'));
   incomeData = (incomeData || []).concat(_pendingRows('income'));
   syncPendingWrites();
@@ -1297,7 +1313,8 @@ async function deleteIncome(id) {
 async function loadLoans() {
   document.getElementById('loans-content').innerHTML = '<div class="empty">Loading...</div>';
   watchForLoadingStuck('loans-content', 'loadLoans');
-  var { data } = await db.from('loans').select('*').order('status').order('date',{ascending:false});
+  var loansResp = await _raceFastTimeout(db.from('loans').select('*').order('status').order('date',{ascending:false}));
+  var data = loansResp ? (loansResp.data || []) : [];
   data = (data || []).concat(_pendingRows('loans'));
   syncPendingWrites();
   if (!data||data.length===0) { document.getElementById('loans-content').innerHTML='<div class="empty">No loans recorded</div>'; return; }
