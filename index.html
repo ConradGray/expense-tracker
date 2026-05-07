@@ -1427,10 +1427,39 @@ function applyDebtsVisibility() {
   btn.style.display = (currentUserId === OWNER_USER_ID) ? '' : 'none';
 }
 
+// JWT heartbeat - proactively refresh the auth token every 25 minutes (well before
+// Supabase's ~60-minute JWT expiry). The default Supabase auto-refresh fires near
+// expiry and on flaky mobile networks the refresh can silently fail, leaving the
+// client with a busted token that hangs every subsequent query. By refreshing on
+// our schedule (when the user is actively using the app and network is responsive)
+// we virtually eliminate that failure mode. Combined with saveWithRetry, this
+// should kill the "save hangs every other transaction" cycle.
+var _heartbeatTimer = null;
+function startSessionHeartbeat() {
+  if (_heartbeatTimer) clearInterval(_heartbeatTimer);
+  _heartbeatTimer = setInterval(function() {
+    if (!currentUserId) return;
+    if (document.hidden) return;
+    console.log('[heartbeat] proactive session refresh');
+    try { db.auth.refreshSession().catch(function(e){ console.warn('[heartbeat] refresh failed:', e && e.message); }); }
+    catch(e) { console.warn('[heartbeat] refresh threw:', e && e.message); }
+  }, 25 * 60 * 1000);
+}
+function stopSessionHeartbeat() {
+  if (_heartbeatTimer) { clearInterval(_heartbeatTimer); _heartbeatTimer = null; }
+}
+document.addEventListener('visibilitychange', function() {
+  if (!document.hidden && currentUserId) {
+    console.log('[heartbeat] tab became visible - refreshing session');
+    try { db.auth.refreshSession().catch(function(){}); } catch(e){}
+  }
+});
+
 async function initAuth() {
   var { data: { session } } = await db.auth.getSession();
   currentUserId = session?.user?.id || null;
   applyDebtsVisibility();
+  if (currentUserId) startSessionHeartbeat();
   if (currentUserId) await loadUserSettings();
   if (currentUserId) await loadPaymentMethods();
   if (currentUserId) await loadDescriptionHistory();
@@ -1443,6 +1472,7 @@ async function initAuth() {
     currentUserId = session?.user?.id || null;
     applyDebtsVisibility();
     if (event === 'SIGNED_OUT') {
+      stopSessionHeartbeat();
       document.getElementById('pin-screen').classList.add('hidden');
       document.getElementById('login-screen').classList.remove('hidden');
       document.getElementById('login-email').value = '';
@@ -1456,6 +1486,7 @@ async function initAuth() {
     // the JWT is fully available — onAuthStateChange fires after with
     // SIGNED_IN/TOKEN_REFRESHED/INITIAL_SESSION and we re-fetch.
     if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && currentUserId) {
+      startSessionHeartbeat();
       try { await loadUserSettings(); } catch(e){}
       try { await loadPaymentMethods(); } catch(e){}
       try { await loadDescriptionHistory(); } catch(e){}
@@ -1729,6 +1760,7 @@ async function handleLogin() {
   } else {
     currentUserId = signInData?.user?.id || null;
     applyDebtsVisibility();
+    if (currentUserId) startSessionHeartbeat();
     if (currentUserId) await loadUserSettings();
     if (currentUserId) await loadPaymentMethods();
     if (currentUserId) await loadDescriptionHistory();
