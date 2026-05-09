@@ -122,11 +122,10 @@ textarea{resize:none;height:72px;font-size:14px;}
 .expense-meta{font-size:12px;color:var(--muted);margin-top:2px;}
 .expense-amount{font-size:15px;font-weight:700;white-space:nowrap;}
 .expense-amount.income-amt{color:var(--blue);}
-.delete-btn{background:none;border:none;font-size:16px;cursor:pointer;padding:4px 6px;opacity:0.7;flex-shrink:0;color:var(--muted);}
+.delete-btn{background:none;border:none;font-size:16px;cursor:pointer;padding:4px 6px;opacity:0.4;flex-shrink:0;}
 .delete-btn:active{opacity:1;}
-.edit-btn{background:none;border:none;font-size:15px;cursor:pointer;padding:4px 6px;opacity:0.7;flex-shrink:0;color:var(--muted);}
+.edit-btn{background:none;border:none;font-size:15px;cursor:pointer;padding:4px 6px;opacity:0.4;flex-shrink:0;}
 .edit-btn:active{opacity:1;}
-@media (prefers-color-scheme: dark){.delete-btn,.edit-btn{opacity:0.85;}}
 .split-bar{display:flex;height:8px;border-radius:4px;overflow:hidden;margin:10px 0 4px;}
 .split-bar-personal{background:var(--blue);}
 .split-bar-business{background:var(--orange);}
@@ -359,7 +358,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans
   </div>
   <div id="form-expense">
     <div class="form-group"><label>Amount</label><div class="amount-prefix"><span class="currency-label">KES</span><input type="number" id="f-amount" placeholder="0" min="0" step="1"/></div></div>
-    <div class="form-group"><label>Description</label><div class="autocomplete-wrap"><input type="text" id="f-desc" name="description" inputmode="text" autocomplete="off" data-form-type="other" data-1p-ignore="true" data-lpignore="true" placeholder="What was it for?" oninput="renderDescAutocomplete('f-desc')" onfocus="renderDescAutocomplete('f-desc')" onblur="_hideAutocomplete('f-desc')" /><div class="autocomplete-list" id="f-desc-list" style="display:none"></div></div></div>
+    <div class="form-group"><label>Description</label><div class="autocomplete-wrap"><input type="text" id="f-desc" placeholder="What was it for?" autocomplete="off" oninput="renderDescAutocomplete('f-desc')" onfocus="renderDescAutocomplete('f-desc')" onblur="_hideAutocomplete('f-desc')" /><div class="autocomplete-list" id="f-desc-list" style="display:none"></div></div></div>
     <div class="form-group"><label>Category</label>
       <div class="cat-picker" id="f-category-picker"><button type="button" class="cat-picker-trigger" onclick="toggleCatPicker('f-category')"><span class="cat-picker-display"><svg class="cat-icon-svg" id="f-category-icon" aria-hidden="true"><use href="#icon-cat-groceries"/></svg><span id="f-category-label">Groceries</span></span><svg class="cat-picker-chevron" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button><input type="hidden" id="f-category" value="Groceries"/><div class="cat-picker-menu" id="f-category-menu"><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Charity/Gift','icon-cat-charitygift')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-charitygift"/></svg><span>Charity/Gift</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Eating Out','icon-cat-eatingout')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-eatingout"/></svg><span>Eating Out</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Entertainment','icon-cat-entertainment')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-entertainment"/></svg><span>Entertainment</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Food Delivery','icon-cat-fooddelivery')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-fooddelivery"/></svg><span>Food Delivery</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Groceries','icon-cat-groceries')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-groceries"/></svg><span>Groceries</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Loans','icon-cat-loans')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-loans"/></svg><span>Loans</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Personal Care','icon-cat-personalcare')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-personalcare"/></svg><span>Personal Care</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Salaries','icon-cat-salaries')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-salaries"/></svg><span>Salaries</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Subscriptions','icon-cat-subscriptions')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-subscriptions"/></svg><span>Subscriptions</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Transport','icon-cat-transport')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-transport"/></svg><span>Transport</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Utilities','icon-cat-utilities')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-utilities"/></svg><span>Utilities</span></button><button type="button" class="cat-picker-row" onclick="selectCat('f-category','Other','icon-cat-other')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-other"/></svg><span>Other</span></button></div></div>
     </div>
@@ -433,7 +432,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans
   <button class="nav-btn active" id="nav-add" onclick="switchTab('add')"><svg class="icon-svg" aria-hidden="true"><use href="#icon-add"/></svg>Add</button>
   <button class="nav-btn" id="nav-month" onclick="switchTab('month')"><svg class="icon-svg" aria-hidden="true"><use href="#icon-month"/></svg>Month</button>
   <button class="nav-btn" id="nav-loans" onclick="switchTab('loans')"><svg class="icon-svg" aria-hidden="true"><use href="#icon-loans"/></svg>Loans</button>
-  <button class="nav-btn" id="nav-debts" style="display:none" onclick="switchTab('debts')"><svg class="icon-svg" aria-hidden="true"><use href="#icon-debts"/></svg>Debts</button>
+  <button class="nav-btn" id="nav-debts" onclick="switchTab('debts')"><svg class="icon-svg" aria-hidden="true"><use href="#icon-debts"/></svg>Debts</button>
   <button class="nav-btn" id="nav-recent" onclick="switchTab('recent')"><svg class="icon-svg" aria-hidden="true"><use href="#icon-recent"/></svg>Recent</button>
 </nav>
 
@@ -458,7 +457,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans
     <!-- Edit Expense form -->
     <div id="edit-form-expense">
       <div class="form-group"><label>Amount</label><div class="amount-prefix"><span class="currency-label">KES</span><input type="number" id="e-amount" placeholder="0" min="0" step="1"/></div></div>
-      <div class="form-group"><label>Description</label><div class="autocomplete-wrap"><input type="text" id="e-desc" name="description" inputmode="text" autocomplete="off" data-form-type="other" data-1p-ignore="true" data-lpignore="true" placeholder="What was it for?" oninput="renderDescAutocomplete('e-desc')" onfocus="renderDescAutocomplete('e-desc')" onblur="_hideAutocomplete('e-desc')" /><div class="autocomplete-list" id="e-desc-list" style="display:none"></div></div></div>
+      <div class="form-group"><label>Description</label><div class="autocomplete-wrap"><input type="text" id="e-desc" placeholder="What was it for?" autocomplete="off" oninput="renderDescAutocomplete('e-desc')" onfocus="renderDescAutocomplete('e-desc')" onblur="_hideAutocomplete('e-desc')" /><div class="autocomplete-list" id="e-desc-list" style="display:none"></div></div></div>
       <div class="form-group"><label>Category</label>
         <div class="cat-picker" id="e-category-picker"><button type="button" class="cat-picker-trigger" onclick="toggleCatPicker('e-category')"><span class="cat-picker-display"><svg class="cat-icon-svg" id="e-category-icon" aria-hidden="true"><use href="#icon-cat-groceries"/></svg><span id="e-category-label">Groceries</span></span><svg class="cat-picker-chevron" aria-hidden="true"><use href="#icon-chevron-down"/></svg></button><input type="hidden" id="e-category" value="Groceries"/><div class="cat-picker-menu" id="e-category-menu"><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Charity/Gift','icon-cat-charitygift')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-charitygift"/></svg><span>Charity/Gift</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Eating Out','icon-cat-eatingout')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-eatingout"/></svg><span>Eating Out</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Entertainment','icon-cat-entertainment')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-entertainment"/></svg><span>Entertainment</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Food Delivery','icon-cat-fooddelivery')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-fooddelivery"/></svg><span>Food Delivery</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Groceries','icon-cat-groceries')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-groceries"/></svg><span>Groceries</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Loans','icon-cat-loans')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-loans"/></svg><span>Loans</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Personal Care','icon-cat-personalcare')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-personalcare"/></svg><span>Personal Care</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Salaries','icon-cat-salaries')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-salaries"/></svg><span>Salaries</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Subscriptions','icon-cat-subscriptions')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-subscriptions"/></svg><span>Subscriptions</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Transport','icon-cat-transport')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-transport"/></svg><span>Transport</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Utilities','icon-cat-utilities')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-utilities"/></svg><span>Utilities</span></button><button type="button" class="cat-picker-row" onclick="selectCat('e-category','Other','icon-cat-other')"><svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-other"/></svg><span>Other</span></button></div></div>
       </div>
@@ -691,21 +690,6 @@ function showToast(msg, color) {
   setTimeout(function(){ t.classList.remove('show'); }, 2500);
 }
 
-// If a content area is still showing "Loading..." after `ms`, swap it for a "Tap to retry" button.
-// Used to escape the dreaded infinite-spinner state when a fetch silently stalls (flaky network).
-function watchForLoadingStuck(elementId, retryFnName, ms) {
-  ms = ms || 6000;
-  setTimeout(function() {
-    var el = document.getElementById(elementId);
-    if (!el) return;
-    var txt = (el.textContent || '').trim();
-    if (txt === 'Loading...' || txt === 'Loading') {
-      console.warn('[loading-stuck]', elementId, 'still loading after', ms, 'ms — showing retry');
-      el.innerHTML = '<div class="empty"><div style="margin-bottom:10px;color:var(--muted)">Couldn\'t load &mdash; check your connection</div><button onclick="' + retryFnName + '()" style="background:var(--green);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">Tap to retry</button></div>';
-    }
-  }, ms);
-}
-
 var currentSettings = { currency: 'KES', locale: 'en-KE', name: '' };
 function _resolveLocale(){
   if (!currentSettings) return 'en-KE';
@@ -889,7 +873,6 @@ function changeMonth(dir) {
 async function loadMonthSummary() {
   document.getElementById('month-label').textContent = MONTHS[currentMonth-1] + ' ' + currentYear;
   document.getElementById('month-content').innerHTML = '<div class="empty">Loading...</div>';
-  watchForLoadingStuck('month-content', 'loadMonthSummary');
   var start = currentYear + '-' + String(currentMonth).padStart(2,'0') + '-01';
   var lastDay = new Date(currentYear, currentMonth, 0).getDate();
   var end = currentYear + '-' + String(currentMonth).padStart(2,'0') + '-' + String(lastDay).padStart(2,'0');
@@ -1044,7 +1027,6 @@ async function deleteDrillExpense(id, cat) {
 
 async function loadRecent() {
   document.getElementById('recent-content').innerHTML = '<div class="empty">Loading...</div>';
-  watchForLoadingStuck('recent-content', 'loadRecent');
   var [{ data: expenses }, { data: incomeData }] = await Promise.all([
     db.from('expenses').select('*').order('date',{ascending:false}).order('created_at',{ascending:false}).limit(15),
     db.from('income').select('*').order('date',{ascending:false}).order('created_at',{ascending:false}).limit(5)
@@ -1085,7 +1067,6 @@ async function deleteIncome(id) {
 
 async function loadLoans() {
   document.getElementById('loans-content').innerHTML = '<div class="empty">Loading...</div>';
-  watchForLoadingStuck('loans-content', 'loadLoans');
   var { data } = await db.from('loans').select('*').order('status').order('date',{ascending:false});
   if (!data||data.length===0) { document.getElementById('loans-content').innerHTML='<div class="empty">No loans recorded</div>'; return; }
   var outstanding=data.filter(function(l){ return l.status==='outstanding'; });
@@ -1119,7 +1100,6 @@ var GBP_KES_RATE = 165; // update manually when rate changes
 // Debts are stored in Supabase — no localStorage needed
 async function loadDebts() {
   document.getElementById('debts-content').innerHTML = '<div class="card" style="color:var(--muted);text-align:center">Loading...</div>';
-  watchForLoadingStuck('debts-content', 'loadDebts');
   var { data: cards, error } = await db.from('debts').select('*').order('id');
   if (error || !cards) {
     document.getElementById('debts-content').innerHTML = '<div class="card" style="color:var(--red)">Failed to load debt data. Check Supabase connection.</div>';
@@ -1304,19 +1284,9 @@ async function exportCSV(){
 }
 
 // ── Supabase Auth ──────────────────────────────────────────────────────────────
-// Owner-only feature gate. Debts is hidden for everyone except this user_id
-// until we rebuild it as a proper Pro feature. Conrad's account.
-var OWNER_USER_ID = 'c7a09a34-fe15-4f03-adee-6f41fd074172';
-function applyDebtsVisibility() {
-  var btn = document.getElementById('nav-debts');
-  if (!btn) return;
-  btn.style.display = (currentUserId === OWNER_USER_ID) ? '' : 'none';
-}
-
 async function initAuth() {
   var { data: { session } } = await db.auth.getSession();
   currentUserId = session?.user?.id || null;
-  applyDebtsVisibility();
   if (currentUserId) await loadUserSettings();
   if (currentUserId) await loadPaymentMethods();
   if (currentUserId) await loadDescriptionHistory();
@@ -1327,7 +1297,6 @@ async function initAuth() {
   }
   db.auth.onAuthStateChange(async function(event, session) {
     currentUserId = session?.user?.id || null;
-    applyDebtsVisibility();
     if (event === 'SIGNED_OUT') {
       document.getElementById('pin-screen').classList.add('hidden');
       document.getElementById('login-screen').classList.remove('hidden');
@@ -1614,7 +1583,6 @@ async function handleLogin() {
     btn.disabled = false; btn.textContent = 'Sign In';
   } else {
     currentUserId = signInData?.user?.id || null;
-    applyDebtsVisibility();
     if (currentUserId) await loadUserSettings();
     if (currentUserId) await loadPaymentMethods();
     if (currentUserId) await loadDescriptionHistory();
