@@ -497,7 +497,8 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans
 const SUPABASE_URL = 'https://uwcpfiildiweurmofmdw.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV3Y3BmaWlsZGl3ZXVybW9mbWR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjEyNjAsImV4cCI6MjA5MTI5NzI2MH0.6L5s2F_myCTojAqc8Y6CxPm0IXyMI4OP8Y3AlTPyUOY';
 const { createClient } = supabase;
-const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+const _supabaseNoLock = async function(name, acquireTimeout, fn) { return await fn(); };
+const db = createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { lock: _supabaseNoLock, persistSession: true, autoRefreshToken: true } });
 
 var selectedType = 'Personal', selectedPayment = 'Mpesa', selectedIncomeType = 'Personal';
 var currentMonth, currentYear, currentTypeFilter = 'all';
