@@ -1227,66 +1227,72 @@ async function runMigration() {
   await db.from('expenses').update({category:'Salaries'}).eq('category','House Help');
 }
 
-// === Diagnostic mode (?diag=1) ===
-// Visible network/save test that surfaces real numbers from the user's device.
-// Activates only when the URL contains ?diag=1 — no behavior change otherwise.
+// === Diagnostic mode v2 (?diag=1) ===
+// Runs queries immediately. No auth wait. Per-query timeout. Big visible text.
 if (location.search.indexOf('diag=1') !== -1) {
-  setTimeout(function(){
-    var div = document.createElement('div');
-    div.id = 'diag-banner';
-    div.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#000;color:#0f0;padding:10px;font-family:monospace;font-size:11px;z-index:99999;white-space:pre-wrap;line-height:1.4;max-height:80vh;overflow:auto;';
-    div.textContent = 'Diagnostic running... wait ~10s';
-    document.body.appendChild(div);
-    (async function(){
-      var lines = ['== SidePocket Diag ==',
-                   'Time: ' + new Date().toISOString(),
-                   'UA: ' + navigator.userAgent.slice(0, 90),
-                   'Online: ' + navigator.onLine,
-                   'User: ' + (currentUserId ? currentUserId.slice(0,8) : 'NOT-SIGNED-IN'),
-                   ''];
-      div.textContent = lines.join('\n');
-      // Wait for auth to be ready (up to 5s)
-      var waitStart = Date.now();
-      while (!currentUserId && Date.now() - waitStart < 5000) {
-        await new Promise(function(r){ setTimeout(r, 200); });
+  var div = document.createElement('div');
+  div.id = 'diag-banner';
+  div.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#000;color:#0f0;padding:12px;font-family:monospace;font-size:13px;z-index:99999;white-space:pre-wrap;line-height:1.6;max-height:90vh;overflow:auto;border-bottom:3px solid #0f0;';
+  div.textContent = 'DIAG v2 starting...';
+  document.documentElement.appendChild(div);
+  var lines = [];
+  function log(s) { lines.push(s); div.textContent = lines.join('\n'); }
+  function timed(promise, ms) {
+    return Promise.race([
+      promise.then(function(r){ return { ok: true, r: r }; }).catch(function(e){ return { ok: false, err: e && e.message || String(e) }; }),
+      new Promise(function(resolve){ setTimeout(function(){ resolve({ ok: false, err: 'TIMEOUT-' + ms + 'ms' }); }, ms); })
+    ]);
+  }
+  setTimeout(async function(){
+    log('== DIAG v2 ==');
+    log('Time: ' + new Date().toISOString());
+    log('Host: ' + location.host);
+    log('Online: ' + navigator.onLine);
+    log('UA: ' + navigator.userAgent.slice(0, 100));
+    log('PWA: ' + (window.matchMedia('(display-mode: standalone)').matches));
+    log('User: ' + (currentUserId ? currentUserId.slice(0,8) : 'null'));
+    log('');
+    // Test 1: Raw fetch to Supabase (no Supabase JS layer)
+    log('-- Raw fetch to Supabase --');
+    for (var i = 0; i < 3; i++) {
+      var t0 = performance.now();
+      var url = 'https://uwcpfiildiweurmofmdw.supabase.co/rest/v1/?apikey=' + encodeURIComponent(SUPABASE_KEY);
+      var res = await timed(fetch(url, { headers: { apikey: SUPABASE_KEY }}).then(function(r){ return r.status; }), 8000);
+      var t1 = performance.now();
+      log('Raw' + (i+1) + ': ' + Math.round(t1-t0) + 'ms ' + (res.ok ? ('status=' + res.r) : ('ERR ' + res.err)));
+    }
+    log('');
+    // Test 2: Supabase JS reads (simulating loadRecent's Supabase client behavior)
+    log('-- Supabase JS reads --');
+    for (var i = 0; i < 3; i++) {
+      var t0 = performance.now();
+      var res = await timed(db.from('expenses').select('id').limit(1), 8000);
+      var t1 = performance.now();
+      var msg = res.ok ? (res.r.error ? 'PgErr: ' + res.r.error.message : ('rows=' + (res.r.data || []).length)) : ('ERR ' + res.err);
+      log('Read' + (i+1) + ': ' + Math.round(t1-t0) + 'ms ' + msg);
+    }
+    log('');
+    // Test 3: insert + delete (real save simulation, only if signed in)
+    if (currentUserId) {
+      log('-- Save sim --');
+      var t0 = performance.now();
+      var ins = await timed(db.from('expenses').insert({
+        user_id: currentUserId, date: new Date().toISOString().split('T')[0],
+        amount: 1, description: 'DIAG-' + Date.now(),
+        category: 'Other', type: 'Personal', payment: 'Cash'
+      }).select().single(), 12000);
+      var t1 = performance.now();
+      log('Insert: ' + Math.round(t1-t0) + 'ms ' + (ins.ok ? (ins.r.error ? 'PgErr: ' + ins.r.error.message : 'OK id=' + (ins.r.data?.id || '?').slice(0,8)) : 'ERR ' + ins.err));
+      if (ins.ok && ins.r.data && ins.r.data.id) {
+        var del = await timed(db.from('expenses').delete().eq('id', ins.r.data.id), 5000);
+        log('Cleanup: ' + (del.ok ? 'OK' : 'ERR ' + del.err));
       }
-      lines[4] = 'User: ' + (currentUserId ? currentUserId.slice(0,8) : 'NOT-SIGNED-IN-AFTER-5S');
-      // Run 5 read queries with timing
-      lines.push('-- Reads (5x) --');
-      for (var i = 0; i < 5; i++) {
-        var t0 = performance.now();
-        try {
-          var r = await db.from('user_settings').select('user_id').limit(1);
-          var t1 = performance.now();
-          lines.push('R' + (i+1) + ': ' + Math.round(t1-t0) + 'ms ' + (r.error ? 'ERR: ' + r.error.message : 'OK'));
-        } catch(e) { lines.push('R' + (i+1) + ': THREW ' + e.message); }
-        div.textContent = lines.join('\n');
-      }
-      // Run 1 insert + delete (full save simulation)
-      lines.push('-- Save sim --');
-      div.textContent = lines.join('\n');
-      var testId;
-      try {
-        var t0 = performance.now();
-        var ins = await db.from('expenses').insert({
-          user_id: currentUserId,
-          date: new Date().toISOString().split('T')[0],
-          amount: 1, description: 'DIAG-' + Date.now(),
-          category: 'Other', type: 'Personal', payment: 'Cash'
-        }).select().single();
-        var t1 = performance.now();
-        lines.push('INSERT: ' + Math.round(t1-t0) + 'ms ' + (ins.error ? 'ERR: ' + ins.error.message : 'OK'));
-        if (ins.data) testId = ins.data.id;
-      } catch(e) { lines.push('INSERT THREW: ' + e.message); }
-      div.textContent = lines.join('\n');
-      if (testId) {
-        try { await db.from('expenses').delete().eq('id', testId); lines.push('Cleanup: OK'); }
-        catch(e) { lines.push('Cleanup THREW: ' + e.message); }
-      }
-      lines.push('-- Done --');
-      div.textContent = lines.join('\n');
-    })();
-  }, 1000);
+    } else {
+      log('Save sim skipped: not signed in');
+    }
+    log('');
+    log('== DONE ==');
+  }, 200);
 }
 
 init();
