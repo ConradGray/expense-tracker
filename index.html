@@ -649,12 +649,7 @@ async function saveEditExpense() {
   var notes = document.getElementById('e-notes').value.trim();
   if (!amount || parseFloat(amount) <= 0) { showToast('Enter an amount','var(--red)'); return; }
   if (!desc) { showToast('Add a description','var(--red)'); return; }
-  var result = await saveWithRetry(function(){ return db.from('expenses').update({ amount: parseFloat(amount), description: desc, category, type: selectedEditType, payment: selectedEditPayment, date, notes }).eq('id', editingExpenseId); });
-  if (result.error) {
-    showToast('Error: ' + result.error.message, 'var(--red)');
-    document.getElementById('edit-overlay').style.display = 'none';
-    return;
-  }
+  await db.from('expenses').update({ amount: parseFloat(amount), description: desc, category, type: selectedEditType, payment: selectedEditPayment, date, notes }).eq('id', editingExpenseId);
   showToast('Updated');
   document.getElementById('edit-overlay').style.display = 'none';
   var savedCat = _editCat;
@@ -671,12 +666,7 @@ async function saveEditIncome() {
   var notes = document.getElementById('ei-notes').value.trim();
   if (!amount || parseFloat(amount) <= 0) { showToast('Enter an amount','var(--red)'); return; }
   if (!source) { showToast('Add a source','var(--red)'); return; }
-  var result = await saveWithRetry(function(){ return db.from('income').update({ amount: parseFloat(amount), source, type: selectedEditIncomeType, date, notes }).eq('id', editingIncomeId); });
-  if (result.error) {
-    showToast('Error: ' + result.error.message, 'var(--red)');
-    document.getElementById('edit-overlay').style.display = 'none';
-    return;
-  }
+  await db.from('income').update({ amount: parseFloat(amount), source, type: selectedEditIncomeType, date, notes }).eq('id', editingIncomeId);
   showToast('Updated');
   document.getElementById('edit-overlay').style.display = 'none';
   editingIncomeId = null;
@@ -701,105 +691,19 @@ function showToast(msg, color) {
   setTimeout(function(){ t.classList.remove('show'); }, 2500);
 }
 
-// Wrap a Supabase mutation with timeout + auto-retry on stale JWT.
-// First attempt times out at `ms` ms. If it timed out (not a real error), we silently
-// refresh the auth session and try ONCE more. This handles the common case where the
-// JWT silently expired and the client got stuck refreshing a bad token. The user sees
-// "Saving…" → "Reconnecting…" → success, with no manual retry needed.
-//
-// Pass `makeMutation` as a function returning a Promise so we can re-invoke it for
-// the retry. `opts.btn` is the submit button — we update its label to "Reconnecting…"
-// during the retry so the user can see something is happening.
-async function saveWithRetry(makeMutation, opts) {
-  opts = opts || {};
-  var ms = opts.ms || 12000;
-  var btn = opts.btn || null;
-  var btnRetryLabel = opts.btnRetryLabel || 'Reconnecting…';
-
-  function _race(p, msg) {
-    return Promise.race([
-      p,
-      new Promise(function(resolve){
-        setTimeout(function(){ resolve({ error: { message: msg }, _timedOut: true }); }, ms);
-      })
-    ]);
-  }
-
-  var first = await _race(makeMutation(), "Couldn't save — retrying with a fresh session");
-  if (!first.error) return first;
-  if (!first._timedOut) return first; // real Supabase error — don't auto-retry
-
-  // Timed out — force a fresh session and retry once.
-  console.warn('[save-retry] first attempt timed out — refreshing JWT and retrying');
-  if (btn) btn.textContent = btnRetryLabel;
-  try {
-    await Promise.race([
-      db.auth.refreshSession(),
-      new Promise(function(_, reject){ setTimeout(function(){ reject(new Error('refresh timeout')); }, 5000); })
-    ]);
-  } catch(e) {
-    console.warn('[save-retry] refreshSession failed:', e && e.message);
-  }
-  var second = await _race(makeMutation(), "Couldn't save — check your connection and try again");
-  return second;
-}
-
-// Backwards-compat wrapper — keeps the older "wrap a Promise" style callable but routes
-// through the new retry logic. Internally normalises a Promise into a function for retry.
-function saveWithTimeout(mutationPromise, ms) {
-  return saveWithRetry(function(){ return mutationPromise; }, { ms: ms });
-}
-function _onTimedOutSave(result) { /* no-op now — retry is built into saveWithRetry */ }
-
-// If a content area is still showing "Loading..." after `ms`, swap it for a softer prompt
-// the user can tap if it really feels stuck. 15s is forgiving enough that normal slow
-// loads complete invisibly; only actually-stuck cases see this message.
+// If a content area is still showing "Loading..." after `ms`, swap it for a "Tap to retry" button.
+// Used to escape the dreaded infinite-spinner state when a fetch silently stalls (flaky network).
 function watchForLoadingStuck(elementId, retryFnName, ms) {
-  ms = ms || 15000;
+  ms = ms || 6000;
   setTimeout(function() {
     var el = document.getElementById(elementId);
     if (!el) return;
     var txt = (el.textContent || '').trim();
     if (txt === 'Loading...' || txt === 'Loading') {
-      console.warn('[loading-slow]', elementId, 'still loading after', ms, 'ms — offering manual reconnect');
-      el.innerHTML = '<div class="empty"><div style="margin-bottom:10px;color:var(--muted);font-size:13px">Still loading… tap if stuck</div><button onclick="hardRetry(\'' + retryFnName + '\',\'' + elementId + '\')" style="background:none;color:var(--green);border:1px solid var(--green);padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">Reconnect</button></div>';
+      console.warn('[loading-stuck]', elementId, 'still loading after', ms, 'ms — showing retry');
+      el.innerHTML = '<div class="empty"><div style="margin-bottom:10px;color:var(--muted)">Couldn\'t load &mdash; check your connection</div><button onclick="' + retryFnName + '()" style="background:var(--green);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">Tap to retry</button></div>';
     }
   }, ms);
-}
-
-// Real retry — force a fresh Supabase session before re-running the loader.
-// The most common cause of a stuck "Loading..." is a stale JWT (token refresh
-// silently failed during a flaky network moment). The Supabase client keeps
-// trying to use the bad token on every subsequent query, so a plain retry
-// just stalls again. refreshSession() forces a clean handshake; if that itself
-// fails we know the network is genuinely down and surface a clearer message.
-async function hardRetry(loaderName, elementId) {
-  var el = elementId ? document.getElementById(elementId) : null;
-  if (el) el.innerHTML = '<div class="empty">Reconnecting...</div>';
-  var refreshOk = false;
-  try {
-    var refreshResult = await Promise.race([
-      db.auth.refreshSession(),
-      new Promise(function(_, reject){ setTimeout(function(){ reject(new Error('refresh timeout')); }, 5000); })
-    ]);
-    refreshOk = !(refreshResult && refreshResult.error);
-    if (refreshResult && refreshResult.data && refreshResult.data.user) {
-      currentUserId = refreshResult.data.user.id;
-    }
-  } catch(e) {
-    console.warn('[hardRetry] refreshSession failed:', e && e.message);
-    refreshOk = false;
-  }
-  if (!refreshOk) {
-    if (el) {
-      el.innerHTML = '<div class="empty"><div style="margin-bottom:10px;color:var(--muted)">No connection &mdash; check your WiFi or mobile data</div><button onclick="hardRetry(\'' + loaderName + '\',\'' + elementId + '\')" style="background:var(--green);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">Try again</button></div>';
-    }
-    return;
-  }
-  // Session is fresh — call the original loader.
-  if (typeof window[loaderName] === 'function') {
-    try { window[loaderName](); } catch(e){ console.error('[hardRetry] loader threw:', e); }
-  }
 }
 
 var currentSettings = { currency: 'KES', locale: 'en-KE', name: '' };
@@ -933,9 +837,9 @@ async function submitExpense() {
   if (!desc) { showToast('Add a description','var(--red)'); return; }
   var btn = document.getElementById('submit-expense-btn');
   btn.disabled = true; btn.textContent = 'Saving...';
-  var result = await saveWithRetry(function(){ return db.from('expenses').insert({ user_id: currentUserId, date, amount: parseFloat(amount), description: desc, category, type: selectedType, payment: selectedPayment, notes }); }, { btn: btn });
+  var { error } = await db.from('expenses').insert({ user_id: currentUserId, date, amount: parseFloat(amount), description: desc, category, type: selectedType, payment: selectedPayment, notes });
   btn.disabled = false; btn.textContent = 'Log Expense';
-  if (result.error) { showToast('Error: ' + result.error.message,'var(--red)'); return; }
+  if (error) { showToast('Error: ' + error.message,'var(--red)'); return; }
   showToast('Expense logged');
   ['f-amount','f-desc','f-notes'].forEach(function(id){ document.getElementById(id).value = ''; });
   loadDescriptionHistory();
@@ -948,9 +852,9 @@ async function submitIncome() {
   if (!source) { showToast('Add a source','var(--red)'); return; }
   var btn = document.getElementById('submit-income-btn');
   btn.disabled = true; btn.textContent = 'Saving...';
-  var result = await saveWithRetry(function(){ return db.from('income').insert({ user_id: currentUserId, date, amount: parseFloat(amount), source, notes, type: selectedIncomeType }); }, { btn: btn });
+  var { error } = await db.from('income').insert({ user_id: currentUserId, date, amount: parseFloat(amount), source, notes, type: selectedIncomeType });
   btn.disabled = false; btn.textContent = 'Log Income';
-  if (result.error) { showToast('Error: ' + result.error.message,'var(--red)'); return; }
+  if (error) { showToast('Error: ' + error.message,'var(--red)'); return; }
   showToast('Income logged');
   ['i-amount','i-source','i-notes'].forEach(function(id){ document.getElementById(id).value = ''; });
   selectedIncomeType = 'Personal';
@@ -968,18 +872,9 @@ async function submitLoan() {
   if (!person) { showToast('Add a person','var(--red)'); return; }
   var btn = document.getElementById('submit-loan-btn');
   btn.disabled = true; btn.textContent = 'Saving...';
-  var loanResult = await saveWithRetry(function(){ return db.from('loans').insert({ user_id: currentUserId, date, amount: parseFloat(amount), person, purpose, notes, status: 'outstanding' }); }, { btn: btn });
-  if (loanResult.error) {
-    btn.disabled = false; btn.textContent = 'Log Loan';
-    showToast('Error: ' + loanResult.error.message, 'var(--red)');
-    return;
-  }
-  var expResult = await saveWithRetry(function(){ return db.from('expenses').insert({ user_id: currentUserId, date, amount: parseFloat(amount), description: 'Loan to ' + person + (purpose ? ' - ' + purpose : ''), category: 'Loans', type: 'Business', payment: selectedPayment, notes }); }, { btn: btn });
+  await db.from('loans').insert({ user_id: currentUserId, date, amount: parseFloat(amount), person, purpose, notes, status: 'outstanding' });
+  await db.from('expenses').insert({ user_id: currentUserId, date, amount: parseFloat(amount), description: 'Loan to ' + person + (purpose ? ' - ' + purpose : ''), category: 'Loans', type: 'Business', payment: selectedPayment, notes });
   btn.disabled = false; btn.textContent = 'Log Loan';
-  if (expResult.error) {
-    showToast('Loan saved, but linked expense failed: ' + expResult.error.message, 'var(--red)');
-    return;
-  }
   showToast('Loan logged');
   ['l-amount','l-person','l-purpose','l-notes'].forEach(function(id){ document.getElementById(id).value = ''; });
 }
@@ -1356,16 +1251,7 @@ init();
 </script>
 
 <script>
-// Service worker disabled: a stale SW was intercepting Supabase API requests on mobile
-// and hanging them, while desktop browsers (with a fresher/no SW) worked fine. Unregister
-// any existing SW on every page load to nuke the cached interceptor for all users.
-// SidePocket is now a regular website — bookmarkable, "Add to Home Screen"-able on iOS,
-// but no longer registers a SW until we ship one that doesn't break API requests.
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.getRegistrations().then(function(regs){
-    regs.forEach(function(r){ r.unregister().then(function(){ console.log('[sw-killer] unregistered stale service worker'); }); });
-  }).catch(function(){});
-}
+if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js').catch(function(){});});}
 
 function getBudgets(){try{return JSON.parse(localStorage.getItem('financeBudgets')||'{}');}catch(e){return {};}}
 
@@ -1427,39 +1313,10 @@ function applyDebtsVisibility() {
   btn.style.display = (currentUserId === OWNER_USER_ID) ? '' : 'none';
 }
 
-// JWT heartbeat - proactively refresh the auth token every 25 minutes (well before
-// Supabase's ~60-minute JWT expiry). The default Supabase auto-refresh fires near
-// expiry and on flaky mobile networks the refresh can silently fail, leaving the
-// client with a busted token that hangs every subsequent query. By refreshing on
-// our schedule (when the user is actively using the app and network is responsive)
-// we virtually eliminate that failure mode. Combined with saveWithRetry, this
-// should kill the "save hangs every other transaction" cycle.
-var _heartbeatTimer = null;
-function startSessionHeartbeat() {
-  if (_heartbeatTimer) clearInterval(_heartbeatTimer);
-  _heartbeatTimer = setInterval(function() {
-    if (!currentUserId) return;
-    if (document.hidden) return;
-    console.log('[heartbeat] proactive session refresh');
-    try { db.auth.refreshSession().catch(function(e){ console.warn('[heartbeat] refresh failed:', e && e.message); }); }
-    catch(e) { console.warn('[heartbeat] refresh threw:', e && e.message); }
-  }, 25 * 60 * 1000);
-}
-function stopSessionHeartbeat() {
-  if (_heartbeatTimer) { clearInterval(_heartbeatTimer); _heartbeatTimer = null; }
-}
-document.addEventListener('visibilitychange', function() {
-  if (!document.hidden && currentUserId) {
-    console.log('[heartbeat] tab became visible - refreshing session');
-    try { db.auth.refreshSession().catch(function(){}); } catch(e){}
-  }
-});
-
 async function initAuth() {
   var { data: { session } } = await db.auth.getSession();
   currentUserId = session?.user?.id || null;
   applyDebtsVisibility();
-  if (currentUserId) startSessionHeartbeat();
   if (currentUserId) await loadUserSettings();
   if (currentUserId) await loadPaymentMethods();
   if (currentUserId) await loadDescriptionHistory();
@@ -1472,7 +1329,6 @@ async function initAuth() {
     currentUserId = session?.user?.id || null;
     applyDebtsVisibility();
     if (event === 'SIGNED_OUT') {
-      stopSessionHeartbeat();
       document.getElementById('pin-screen').classList.add('hidden');
       document.getElementById('login-screen').classList.remove('hidden');
       document.getElementById('login-email').value = '';
@@ -1486,7 +1342,6 @@ async function initAuth() {
     // the JWT is fully available — onAuthStateChange fires after with
     // SIGNED_IN/TOKEN_REFRESHED/INITIAL_SESSION and we re-fetch.
     if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && currentUserId) {
-      startSessionHeartbeat();
       try { await loadUserSettings(); } catch(e){}
       try { await loadPaymentMethods(); } catch(e){}
       try { await loadDescriptionHistory(); } catch(e){}
@@ -1760,7 +1615,6 @@ async function handleLogin() {
   } else {
     currentUserId = signInData?.user?.id || null;
     applyDebtsVisibility();
-    if (currentUserId) startSessionHeartbeat();
     if (currentUserId) await loadUserSettings();
     if (currentUserId) await loadPaymentMethods();
     if (currentUserId) await loadDescriptionHistory();
@@ -1986,5 +1840,3 @@ initAuth();
 </div>
 </body>
 </html>
-
-<!-- redeploy-marker 1778313371386 -->
