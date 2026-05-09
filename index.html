@@ -1227,6 +1227,68 @@ async function runMigration() {
   await db.from('expenses').update({category:'Salaries'}).eq('category','House Help');
 }
 
+// === Diagnostic mode (?diag=1) ===
+// Visible network/save test that surfaces real numbers from the user's device.
+// Activates only when the URL contains ?diag=1 — no behavior change otherwise.
+if (location.search.indexOf('diag=1') !== -1) {
+  setTimeout(function(){
+    var div = document.createElement('div');
+    div.id = 'diag-banner';
+    div.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#000;color:#0f0;padding:10px;font-family:monospace;font-size:11px;z-index:99999;white-space:pre-wrap;line-height:1.4;max-height:80vh;overflow:auto;';
+    div.textContent = 'Diagnostic running... wait ~10s';
+    document.body.appendChild(div);
+    (async function(){
+      var lines = ['== SidePocket Diag ==',
+                   'Time: ' + new Date().toISOString(),
+                   'UA: ' + navigator.userAgent.slice(0, 90),
+                   'Online: ' + navigator.onLine,
+                   'User: ' + (currentUserId ? currentUserId.slice(0,8) : 'NOT-SIGNED-IN'),
+                   ''];
+      div.textContent = lines.join('\n');
+      // Wait for auth to be ready (up to 5s)
+      var waitStart = Date.now();
+      while (!currentUserId && Date.now() - waitStart < 5000) {
+        await new Promise(function(r){ setTimeout(r, 200); });
+      }
+      lines[4] = 'User: ' + (currentUserId ? currentUserId.slice(0,8) : 'NOT-SIGNED-IN-AFTER-5S');
+      // Run 5 read queries with timing
+      lines.push('-- Reads (5x) --');
+      for (var i = 0; i < 5; i++) {
+        var t0 = performance.now();
+        try {
+          var r = await db.from('user_settings').select('user_id').limit(1);
+          var t1 = performance.now();
+          lines.push('R' + (i+1) + ': ' + Math.round(t1-t0) + 'ms ' + (r.error ? 'ERR: ' + r.error.message : 'OK'));
+        } catch(e) { lines.push('R' + (i+1) + ': THREW ' + e.message); }
+        div.textContent = lines.join('\n');
+      }
+      // Run 1 insert + delete (full save simulation)
+      lines.push('-- Save sim --');
+      div.textContent = lines.join('\n');
+      var testId;
+      try {
+        var t0 = performance.now();
+        var ins = await db.from('expenses').insert({
+          user_id: currentUserId,
+          date: new Date().toISOString().split('T')[0],
+          amount: 1, description: 'DIAG-' + Date.now(),
+          category: 'Other', type: 'Personal', payment: 'Cash'
+        }).select().single();
+        var t1 = performance.now();
+        lines.push('INSERT: ' + Math.round(t1-t0) + 'ms ' + (ins.error ? 'ERR: ' + ins.error.message : 'OK'));
+        if (ins.data) testId = ins.data.id;
+      } catch(e) { lines.push('INSERT THREW: ' + e.message); }
+      div.textContent = lines.join('\n');
+      if (testId) {
+        try { await db.from('expenses').delete().eq('id', testId); lines.push('Cleanup: OK'); }
+        catch(e) { lines.push('Cleanup THREW: ' + e.message); }
+      }
+      lines.push('-- Done --');
+      div.textContent = lines.join('\n');
+    })();
+  }, 1000);
+}
+
 init();
 </script>
 
