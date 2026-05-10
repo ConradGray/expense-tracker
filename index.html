@@ -500,17 +500,32 @@ const { createClient } = supabase;
 const _supabaseNoLock = async function(name, acquireTimeout, fn) { return await fn(); };
 const db = createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { lock: _supabaseNoLock, persistSession: true, autoRefreshToken: true } });
 
-// Refresh the auth session whenever the user comes back to the app after being away.
-// Targets the "logged an entry, walked away for an hour, came back, app hangs" pattern.
-// The JWT may have expired during idle; proactively refreshing on tab-becomes-visible
-// means the next query the user triggers has a fresh token. Race against 5s so a slow
-// refresh can never block the UI.
+// Idle lock — banking-style auto-lock after 5 minutes of inactivity.
+// Tracks the last user interaction. On tab-becomes-visible we always refresh the auth
+// session in the background. If the gap since last activity is >= 5 minutes, we ALSO
+// show the PIN screen — the user re-authenticates while the JWT refreshes silently in
+// parallel, so by the time PIN is verified the next query has a fresh token. Hangs
+// caused by stale-JWT-after-idle are replaced by an explicit re-auth moment, which is
+// expected behaviour for any financial app.
+var IDLE_LOCK_MS = 5 * 60 * 1000;
+var _lastActivity = Date.now();
+function _markActivity() { _lastActivity = Date.now(); }
+['click','keydown','touchstart','pointerdown'].forEach(function(evt){
+  document.addEventListener(evt, _markActivity, { passive: true, capture: true });
+});
 document.addEventListener('visibilitychange', function() {
   if (document.hidden) return;
+  // Always kick a session refresh on tab focus (handles short idle gracefully)
   Promise.race([
     db.auth.refreshSession(),
     new Promise(function(_, reject){ setTimeout(function(){ reject(new Error('refresh timeout')); }, 5000); })
   ]).catch(function(e){ console.warn('[focus-refresh] session refresh failed:', e && e.message); });
+  // If the user was away too long, lock to PIN screen
+  var elapsed = Date.now() - _lastActivity;
+  if (elapsed >= IDLE_LOCK_MS && currentUserId && typeof _showPinScreen === 'function') {
+    _showPinScreen();
+  }
+  _markActivity();
 });
 
 var selectedType = 'Personal', selectedPayment = 'Mpesa', selectedIncomeType = 'Personal';
