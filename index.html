@@ -500,13 +500,11 @@ const { createClient } = supabase;
 const _supabaseNoLock = async function(name, acquireTimeout, fn) { return await fn(); };
 const db = createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { lock: _supabaseNoLock, persistSession: true, autoRefreshToken: true } });
 
-// Idle lock — banking-style auto-lock after 5 minutes of inactivity.
-// Tracks the last user interaction. On tab-becomes-visible we always refresh the auth
-// session in the background. If the gap since last activity is >= 5 minutes, we ALSO
-// show the PIN screen — the user re-authenticates while the JWT refreshes silently in
-// parallel, so by the time PIN is verified the next query has a fresh token. Hangs
-// caused by stale-JWT-after-idle are replaced by an explicit re-auth moment, which is
-// expected behaviour for any financial app.
+// Idle lock — banking-style hard-fail-to-signin after 5 minutes of inactivity.
+// Conrad's call: stop trying to silently heal a stale session — the heal path is what
+// hangs. When the user comes back after being idle, immediately sign them out locally
+// and route to the email+password sign-in screen. Full re-auth = guaranteed fresh JWT
+// = no ambiguity, no hangs.
 var IDLE_LOCK_MS = 5 * 60 * 1000;
 var _lastActivity = Date.now();
 function _markActivity() { _lastActivity = Date.now(); }
@@ -515,17 +513,21 @@ function _markActivity() { _lastActivity = Date.now(); }
 });
 document.addEventListener('visibilitychange', function() {
   if (document.hidden) return;
-  // Always kick a session refresh on tab focus (handles short idle gracefully)
-  Promise.race([
-    db.auth.refreshSession(),
-    new Promise(function(_, reject){ setTimeout(function(){ reject(new Error('refresh timeout')); }, 5000); })
-  ]).catch(function(e){ console.warn('[focus-refresh] session refresh failed:', e && e.message); });
-  // If the user was away too long, lock to PIN screen
   var elapsed = Date.now() - _lastActivity;
-  if (elapsed >= IDLE_LOCK_MS && currentUserId && typeof _showPinScreen === 'function') {
-    _showPinScreen();
-  }
   _markActivity();
+  if (elapsed < IDLE_LOCK_MS) return;
+  if (!currentUserId) return;
+  console.log('[idle-lock] idle ' + Math.round(elapsed/1000) + 's >= threshold — signing out');
+  try { db.auth.signOut({ scope: 'local' }).catch(function(){}); } catch(e){}
+  currentUserId = null;
+  var pinEl = document.getElementById('pin-screen');
+  var loginEl = document.getElementById('login-screen');
+  if (pinEl) pinEl.classList.add('hidden');
+  if (loginEl) loginEl.classList.remove('hidden');
+  var emailEl = document.getElementById('login-email');
+  var pwEl = document.getElementById('login-password');
+  if (emailEl) emailEl.value = '';
+  if (pwEl) pwEl.value = '';
 });
 
 var selectedType = 'Personal', selectedPayment = 'Mpesa', selectedIncomeType = 'Personal';
