@@ -500,6 +500,19 @@ const { createClient } = supabase;
 const _supabaseNoLock = async function(name, acquireTimeout, fn) { return await fn(); };
 const db = createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { lock: _supabaseNoLock, persistSession: true, autoRefreshToken: true } });
 
+// Refresh auth quietly when the page becomes visible again. Targets the
+// "backgrounded for a few minutes → came back → first save hangs" pattern by
+// making sure the next query has a fresh token. 3-second timeout means the
+// refresh itself can never block the UI even if it stalls. No PIN screen,
+// no sign-out, no cascade — just a quiet token refresh.
+document.addEventListener('visibilitychange', function() {
+  if (document.hidden) return;
+  Promise.race([
+    db.auth.refreshSession(),
+    new Promise(function(_, reject){ setTimeout(function(){ reject(new Error('refresh timeout')); }, 3000); })
+  ]).catch(function(e){ console.warn('[focus-refresh] failed:', e && e.message); });
+});
+
 var selectedType = 'Personal', selectedPayment = 'Mpesa', selectedIncomeType = 'Personal';
 var currentMonth, currentYear, currentTypeFilter = 'all';
 var currentUserId = null;
