@@ -249,7 +249,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans
 .pm-add button{background:var(--green);border:none;color:var(--on-accent);padding:10px 16px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;}
 .pm-empty{font-size:13px;color:var(--muted);text-align:center;padding:12px;}
 
-/* Desktop layout — widen on big screens */
+/* Desktop layout â widen on big screens */
 @media (min-width: 900px) {
   body{max-width:700px;}
   .bottom-nav{max-width:700px;}
@@ -746,7 +746,7 @@ function fmtNumber(n){
   try { return Math.round(n).toLocaleString(locale); }
   catch(e){ return Math.round(n).toLocaleString(); }
 }
-// Backwards-compat alias — existing call sites still work
+// Backwards-compat alias â existing call sites still work
 function fmtKES(n){ return fmtMoney(n); }
 function detectDefaults(){
   var lang = navigator.language || 'en-KE';
@@ -985,7 +985,7 @@ async function loadMonthSummary() {
         var icon = CAT_ICONS[m.cat]||'<svg class="cat-icon-svg" aria-hidden="true"><use href="#icon-cat-other"/></svg>';
         html += '<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0">';
         html += '<span style="color:var(--muted)">'+icon+' '+m.cat+'</span>';
-        html += '<span style="color:'+(up?'var(--red)':'var(--green)')+';">'+(up?'▲':'▼')+' '+fmtKES(Math.abs(m.diff))+'</span>';
+        html += '<span style="color:'+(up?'var(--red)':'var(--green)')+';">'+(up?'â²':'â¼')+' '+fmtKES(Math.abs(m.diff))+'</span>';
         html += '</div>';
       });
       html += '</div>';
@@ -1139,10 +1139,10 @@ async function loadLoans() {
   document.getElementById('loans-content').innerHTML = html;
 }
 
-// ── DEBTS ────────────────────────────────────────────────────────────────────
+// ââ DEBTS ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 var GBP_KES_RATE = 165; // update manually when rate changes
 
-// Debts are stored in Supabase — no localStorage needed
+// Debts are stored in Supabase â no localStorage needed
 async function loadDebts() {
   document.getElementById('debts-content').innerHTML = '<div class="card" style="color:var(--muted);text-align:center">Loading...</div>';
   var { data: cards, error } = await db.from('debts').select('*').order('id');
@@ -1175,7 +1175,7 @@ async function loadDebts() {
   // Total KES equivalent
   html += '<div class="card"><div class="stat-row"><span class="stat-label">Total debt (KES equiv.)</span><span class="stat-value" style="color:var(--red)">' + fmtKES(Math.round(totalKESEquiv)) + '</span></div>';
   html += '<div class="stat-row"><span class="stat-label">Annual interest cost</span><span class="stat-value" style="color:var(--orange)">' + fmtKES(Math.round(annualInterest)) + '</span></div>';
-  html += '<div style="font-size:11px;color:var(--muted);margin-top:6px">GBP rate used: 1 GBP = ' + GBP_KES_RATE + ' KES · Last updated: ' + (cards[0] ? (cards[0].updated_at || '').substring(0,10) : '–') + '</div></div>';
+  html += '<div style="font-size:11px;color:var(--muted);margin-top:6px">GBP rate used: 1 GBP = ' + GBP_KES_RATE + ' KES Â· Last updated: ' + (cards[0] ? (cards[0].updated_at || '').substring(0,10) : 'â') + '</div></div>';
 
   // Individual cards
   html += '<div class="section-title">Cards</div>';
@@ -1184,12 +1184,12 @@ async function loadDebts() {
     var monthlyInt = bal * (c.apr / 100) / 12;
     var cleared = bal === 0;
     html += '<div class="card">';
-    html += '<div class="loan-top"><span class="loan-person" style="' + (cleared ? 'color:var(--green)' : '') + '">' + (cleared ? '✓ ' : '') + c.name + '</span>';
+    html += '<div class="loan-top"><span class="loan-person" style="' + (cleared ? 'color:var(--green)' : '') + '">' + (cleared ? 'â ' : '') + c.name + '</span>';
     html += '<span class="loan-amount ' + (cleared ? 'settled-amt' : '') + '">' + (c.currency === 'GBP' ? 'GBP ' + bal.toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}) : fmtKES(bal)) + '</span></div>';
     if (!cleared) {
-      html += '<div class="loan-meta">APR ' + c.apr + '% · Monthly interest: ' + (c.currency === 'GBP' ? 'GBP ' + monthlyInt.toFixed(0) : fmtKES(Math.round(monthlyInt))) + '</div>';
+      html += '<div class="loan-meta">APR ' + c.apr + '% Â· Monthly interest: ' + (c.currency === 'GBP' ? 'GBP ' + monthlyInt.toFixed(0) : fmtKES(Math.round(monthlyInt))) + '</div>';
     } else {
-      html += '<div class="loan-meta" style="color:var(--green)">Cleared 🎉</div>';
+      html += '<div class="loan-meta" style="color:var(--green)">Cleared ð</div>';
     }
     html += '<div class="loan-actions"><button class="settle-btn" style="border-color:var(--blue);color:var(--blue);background:var(--blue-bg)" onclick="editDebtCard(' + c.id + ',\'' + c.name.replace(/'/g,"\\'") + '\',' + bal + ',\'' + c.currency + '\')">Update Balance</button>';
     if (!cleared) html += '<button class="settle-btn" style="margin-left:4px" onclick="clearDebtCard(' + c.id + ',\'' + c.name.replace(/'/g,"\\'") + '\')">Mark Cleared</button>';
@@ -1197,7 +1197,7 @@ async function loadDebts() {
   });
 
   // Rate edit
-  html += '<div class="card"><div style="font-size:12px;color:var(--muted);margin-bottom:8px">GBP → KES conversion rate</div>';
+  html += '<div class="card"><div style="font-size:12px;color:var(--muted);margin-bottom:8px">GBP â KES conversion rate</div>';
   html += '<div style="display:flex;gap:8px;align-items:center"><input type="number" id="gbp-rate-input" value="' + GBP_KES_RATE + '" style="width:100px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--white);padding:6px 10px;font-size:14px">';
   html += '<button class="settle-btn" onclick="updateGBPRate()">Update</button></div></div>';
 
@@ -1219,7 +1219,7 @@ async function clearDebtCard(id, name) {
   if (!confirm('Mark ' + name + ' as fully cleared?')) return;
   var { error } = await db.from('debts').update({ balance: 0, updated_at: new Date().toISOString() }).eq('id', id);
   if (error) { showToast('Update failed', 'var(--red)'); return; }
-  showToast('Card cleared! 🎉');
+  showToast('Card cleared! ð');
   loadDebts();
 }
 
@@ -1230,10 +1230,10 @@ function updateGBPRate() {
   showToast('Rate updated');
   loadDebts();
 }
-// ─────────────────────────────────────────────────────────────────────────────
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
 async function partialLoanPayment(id, person, outstanding) {
-  var val = prompt(person + ' — outstanding: ' + fmtKES(outstanding) + '\nHow much did they pay back?');
+  var val = prompt(person + ' â outstanding: ' + fmtKES(outstanding) + '\nHow much did they pay back?');
   if (val === null) return;
   var payment = parseFloat(val);
   if (isNaN(payment) || payment <= 0) { showToast('Invalid amount', 'var(--red)'); return; }
@@ -1243,8 +1243,8 @@ async function partialLoanPayment(id, person, outstanding) {
   if (remaining <= 0) {
     // Fully paid via partial payment flow
     await db.from('loans').update({ status: 'settled', settled_date: today, amount: 0 }).eq('id', id);
-    await db.from('income').insert({ user_id: currentUserId, date: today, amount: payment, source: 'Loan Repayment - ' + person, notes: 'Final payment — loan settled' });
-    showToast('Fully settled — income logged');
+    await db.from('income').insert({ user_id: currentUserId, date: today, amount: payment, source: 'Loan Repayment - ' + person, notes: 'Final payment â loan settled' });
+    showToast('Fully settled â income logged');
   } else {
     // Reduce outstanding balance
     await db.from('loans').update({ amount: remaining }).eq('id', id);
@@ -1396,7 +1396,7 @@ async function exportCSV(){
   showToast('CSV exported');
 }
 
-// ── Supabase Auth ──────────────────────────────────────────────────────────────
+// ââ Supabase Auth ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 async function initAuth() {
   var { data: { session } } = await db.auth.getSession();
   currentUserId = session?.user?.id || null;
@@ -1421,7 +1421,7 @@ async function initAuth() {
     }
     // Always (re)load user state when we have a verified session.
     // This covers the refresh case where getSession() returns before
-    // the JWT is fully available — onAuthStateChange fires after with
+    // the JWT is fully available â onAuthStateChange fires after with
     // SIGNED_IN/TOKEN_REFRESHED/INITIAL_SESSION and we re-fetch.
     if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && currentUserId) {
       try { await loadUserSettings(); } catch(e){}
@@ -1508,7 +1508,7 @@ function renderPaymentButtons(){
 
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 
-// ── Settings: payment methods management ──────────────────────────────────────
+// ââ Settings: payment methods management ââââââââââââââââââââââââââââââââââââââ
 function renderPaymentMethodsSettings(){
   var el = document.getElementById('settings-pm-list'); if (!el) return;
   if (currentPaymentMethods.length === 0) {
@@ -1619,7 +1619,7 @@ function renderDescAutocomplete(inputId){
   if (!input || !list) return;
   var rawQuery = (input.value || '').trim();
   var query = rawQuery.toLowerCase();
-  // No query yet → show top recent items if there's history
+  // No query yet â show top recent items if there's history
   if (!query) {
     if (descriptionHistory.length === 0){ list.style.display = 'none'; return; }
     var recent = descriptionHistory.slice(0, 5);
@@ -1682,14 +1682,14 @@ async function handleLogin() {
 
   if (_authMode === 'signup') {
     if (password.length < 6) { errEl.textContent = 'Password must be at least 6 characters'; return; }
-    btn.disabled = true; btn.textContent = 'Creating account…';
+    btn.disabled = true; btn.textContent = 'Creating accountâ¦';
     var { error: signUpError } = await db.auth.signUp({ email: email, password: password });
     btn.disabled = false; btn.textContent = 'Create Account';
     if (signUpError) { errEl.textContent = signUpError.message; return; }
     return _showSignUpSuccess(email);
   }
 
-  btn.disabled = true; btn.textContent = 'Signing in…';
+  btn.disabled = true; btn.textContent = 'Signing inâ¦';
   var { data: signInData, error } = await db.auth.signInWithPassword({ email: email, password: password });
   if (error) {
     errEl.textContent = error.message === 'Invalid login credentials' ? 'Incorrect email or password' : error.message;
@@ -1761,7 +1761,7 @@ document.addEventListener('keydown', function(e){
     e.preventDefault();
     pinDel();
   } else if (e.key === 'Enter') {
-    // No-op — pinProcess auto-runs at 4 chars
+    // No-op â pinProcess auto-runs at 4 chars
     e.preventDefault();
   }
 });
@@ -1840,41 +1840,41 @@ initAuth();
       <div>
         <label for="settings-currency">Currency</label>
         <select id="settings-currency">
-          <option value="KES">KES — Kenyan Shilling</option>
-          <option value="USD">USD — US Dollar</option>
-          <option value="EUR">EUR — Euro</option>
-          <option value="GBP">GBP — British Pound</option>
-          <option value="NGN">NGN — Nigerian Naira</option>
-          <option value="ZAR">ZAR — South African Rand</option>
-          <option value="INR">INR — Indian Rupee</option>
-          <option value="AUD">AUD — Australian Dollar</option>
-          <option value="CAD">CAD — Canadian Dollar</option>
-          <option value="JPY">JPY — Japanese Yen</option>
-          <option value="CHF">CHF — Swiss Franc</option>
-          <option value="NZD">NZD — New Zealand Dollar</option>
-          <option value="BRL">BRL — Brazilian Real</option>
-          <option value="MXN">MXN — Mexican Peso</option>
-          <option value="CNY">CNY — Chinese Yuan</option>
+          <option value="KES">KES â Kenyan Shilling</option>
+          <option value="USD">USD â US Dollar</option>
+          <option value="EUR">EUR â Euro</option>
+          <option value="GBP">GBP â British Pound</option>
+          <option value="NGN">NGN â Nigerian Naira</option>
+          <option value="ZAR">ZAR â South African Rand</option>
+          <option value="INR">INR â Indian Rupee</option>
+          <option value="AUD">AUD â Australian Dollar</option>
+          <option value="CAD">CAD â Canadian Dollar</option>
+          <option value="JPY">JPY â Japanese Yen</option>
+          <option value="CHF">CHF â Swiss Franc</option>
+          <option value="NZD">NZD â New Zealand Dollar</option>
+          <option value="BRL">BRL â Brazilian Real</option>
+          <option value="MXN">MXN â Mexican Peso</option>
+          <option value="CNY">CNY â Chinese Yuan</option>
         </select>
       </div>
       <div>
         <label for="settings-locale">Number formatting</label>
         <select id="settings-locale">
           <option value="auto">Match my browser</option>
-          <option value="en-KE">English (Kenya) — 1,234</option>
-          <option value="en-US">English (US) — 1,234</option>
-          <option value="en-GB">English (UK) — 1,234</option>
-          <option value="en-IE">English (Ireland) — 1,234</option>
-          <option value="nl-NL">Dutch (Netherlands) — 1.234</option>
-          <option value="de-DE">German (Germany) — 1.234</option>
-          <option value="fr-FR">French (France) — 1 234</option>
-          <option value="es-ES">Spanish (Spain) — 1.234</option>
-          <option value="pt-PT">Portuguese (Portugal) — 1234</option>
-          <option value="en-ZA">English (South Africa) — 1 234</option>
-          <option value="en-IN">English (India) — 1,234</option>
-          <option value="en-AU">English (Australia) — 1,234</option>
-          <option value="en-CA">English (Canada) — 1,234</option>
-          <option value="ja-JP">Japanese — 1,234</option>
+          <option value="en-KE">English (Kenya) â 1,234</option>
+          <option value="en-US">English (US) â 1,234</option>
+          <option value="en-GB">English (UK) â 1,234</option>
+          <option value="en-IE">English (Ireland) â 1,234</option>
+          <option value="nl-NL">Dutch (Netherlands) â 1.234</option>
+          <option value="de-DE">German (Germany) â 1.234</option>
+          <option value="fr-FR">French (France) â 1 234</option>
+          <option value="es-ES">Spanish (Spain) â 1.234</option>
+          <option value="pt-PT">Portuguese (Portugal) â 1234</option>
+          <option value="en-ZA">English (South Africa) â 1 234</option>
+          <option value="en-IN">English (India) â 1,234</option>
+          <option value="en-AU">English (Australia) â 1,234</option>
+          <option value="en-CA">English (Canada) â 1,234</option>
+          <option value="ja-JP">Japanese â 1,234</option>
         </select>
         <div class="settings-hint">Affects how numbers are grouped and the currency symbol position.</div>
       </div>
@@ -1921,3 +1921,5 @@ initAuth();
 </div>
 </body>
 </html>
+
+<!--BISECT-B-MAY-3-->
